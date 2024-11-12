@@ -1,0 +1,16 @@
+com\mycompany\pensax\sessions\AbstractFacade.class
+com\mycompany\pensax\controladores\auth.class
+com\mycompany\pensax\modelos\User.class
+com\mycompany\pensax\sessions\UserFacade.class
+com\mycompany\pensax\modelos\Peticion.class
+com\mycompany\pensax\sessions\PeticionFacade.class
+com\mycompany\pensax\resources\JakartaEE10Resource.class
+com\mycompany\pensax\modelos\VotoPK.class
+com\mycompany\pensax\JakartaRestConfiguration.class
+com\mycompany\pensax\modelos\Session.class
+com\mycompany\pensax\modelos\Voto.class
+com\mycompany\pensax\sessions\CarreraFacade.class
+com\mycompany\pensax\sessions\VotoFacade.class
+com\mycompany\pensax\controladores\peticiones.class
+com\mycompany\pensax\sessions\SessionFacade.class
+com\mycompany\pensax\modelos\Carrera.class
