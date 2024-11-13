@@ -1,23 +1,24 @@
 <%-- 
-    Document   : votar
-    Created on : 11 nov 2024, 13:29:15
+    Document   : vencidas
+    Created on : 13 nov 2024, 10:08:09
     Author     : users
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<%@ page session="true" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Votar Petición</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Peticiones Vencidas</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<!-- Navigation -->
+    <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
             <a class="navbar-brand" href="${pageContext.request.contextPath}/peticiones">
@@ -84,7 +85,7 @@
     <c:if test="${sessionScope.user.getRol().equals(\"redactor\")}">
         <nav class="bg-light p-2">
             <div class="container">
-                <ul class="nav navbar-light bg-light">
+                <ul class="navnavbar-light bg-light">
                     <li class="nav-item">
                         <a href="${pageContext.request.contextPath}/peticiones" class="nav-link ${pageContext.request.requestURI.endsWith('/peticiones') ? 'text-warning' : 'text-muted'}">
                             Publicadas
@@ -104,93 +105,57 @@
             </div>
         </nav>
     </c:if>
-<div class="container my-5">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h2 class="mb-0">Votar Petición</h2>
-        </div>
-        <div class="card-body">
-            <h3 class="card-title">${peticion.getTitulo()}</h3>
-            <p class="card-text">${peticion.getDescripcion()}</p>
 
-            <div class="mt-4 mb-4">
-                <h5>Resultados de los votos</h5>
-                <p>A favor: <strong>${peticion.getPositivos()}</strong></p>
-                <p>En contra: <strong>${peticion.getNegativos()}</strong></p>
-            </div>
+    <div class="container my-5 p-4 bg-light rounded shadow-lg">
+        <h2 class="font-weight-bold text-center mb-4">Peticiones Vencidas</h2>
 
-            <c:if test="${not empty successMessage}">
-                <div class="alert alert-success">
-                    ${successMessage}
-                </div>
-            </c:if>
-
-            <c:if test="${!uservote}">
-                <form id="vote-form" method="post" action="./votar?id=${peticion.getIdpeticion()}">
-                    <div class="mb-3">
-                        <label class="form-label">¿Qué posición tomas frente a esta petición?</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" id="positivo" name="voto" value="1">
-                            <label class="form-check-label" for="positivo">A favor</label>
+        <c:choose>
+            <c:when test="${not empty peticiones}">
+                <div class="row">
+                    <c:forEach var="peticion" items="${peticiones}">
+                        <div class="col-md-6 mb-4">
+                            <a href="${pageContext.request.contextPath}/peticiones/show?id=${peticion.getIdpeticion()}" class="text-decoration-none">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-dark font-weight-bold">${peticion.getTitulo()}</h5>
+                                        <p class="card-text text-muted">
+                                            ${fn:substring(peticion.getDescripcion(), 0, 50)}...
+                                        </p>
+                                        <p class="text-muted mb-2">Vencimiento: <fmt:formatDate value="${peticion.getVencimiento()}" pattern="dd/MM/yyyy" /></p>
+                                    </div>
+                                    <c:if test="${not empty peticion.getImagen()}">
+                                        <c:choose>
+                                            <c:when test="${peticion.getImagen().startsWith('http')}">
+                                                <!-- Imagen de URL externa -->
+                                                <img src="${peticion.getImagen()}" alt="${peticion.getTitulo()}" class="card-img-bottom" style="max-height: 150px; object-fit: cover;">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <!-- Imagen almacenada en el servidor -->
+                                                <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" class="card-img-bottom" alt="${peticion.getTitulo()}" style="max-height: 150px; object-fit: cover;">
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </c:if>
+                                </div>
+                            </a>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" id="negativo" name="voto" value="0">
-                            <label class="form-check-label" for="negativo">En contra</label>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">¿Voto anónimo?</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="anonymous" name="anonimo" value="1">
-                            <label class="form-check-label" for="anonymous">Sí</label>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Votar</button>
-                </form>
-            </c:if>
-
-            <c:if test="${uservote}">
-                <div class="alert alert-info mt-4">
-                    Ya has votado. Gracias por tu participación.
+                    </c:forEach>
                 </div>
-            </c:if>
+            </c:when>
+            <c:otherwise>
+                <div class="alert alert-secondary text-center">No hay peticiones vencidas</div>
+            </c:otherwise>
+        </c:choose>
 
-            <c:if test="${usuario == peticion.getUserIdusers() || usuario.getRol().equals(\"admin\")}">
-                <div class="mt-4">
-                    <a href="${pageContext.request.contextPath}/peticiones/show?id=${peticion.getIdpeticion()}" class="text-decoration-none text-primary">
-                        Detalles de la Petición
-                    </a>
-                </div>
-            </c:if>
-        </div>
-        <c:if test="${!peticion.getImagen().trim().isEmpty()}">
-            <div class="card-footer bg-white">
-                <c:choose>
-                    <c:when test="${peticion.getImagen().startsWith('http')}">
-                        <!-- Imagen de URL externa -->
-                        <img src="${peticion.getImagen()}" 
-                             alt="${peticion.getTitulo()}" 
-                             class="rounded img-fluid w-100" style="max-height: 300px; object-fit: cover;">
-                    </c:when>
-                    <c:otherwise>
-                        <!-- Imagen almacenada localmente en el servidor -->
-                        <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" 
-                             alt="${peticion.getTitulo()}" 
-                             class="rounded img-fluid w-100" style="max-height: 300px; object-fit: cover;">
-                    </c:otherwise>
-                </c:choose>
-            </div>
-        </c:if>
+        
     </div>
-</div>
     <footer class="bg-dark text-white py-4 mt-auto">
         <div class="container text-center">
             <jsp:useBean id="now" class="java.util.Date" scope="request" />
             <p>&copy; <fmt:formatDate value="${now}" pattern="yyyy" /> Pensax. All rights reserved.</p>
         </div>
     </footer>
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

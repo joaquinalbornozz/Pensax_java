@@ -14,9 +14,13 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.io.File;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -66,7 +70,7 @@ public class PeticionFacade extends AbstractFacade<Peticion> {
 
     }
     
-    public List<Peticion> obtenerPeticionesPorUsuario(User user, String filter) {
+    public List<Peticion> getPeticionesPorUsuario(User user, String filter) {
         EntityManager emm = getEntityManager();
         CriteriaBuilder cb = emm.getCriteriaBuilder();
         CriteriaQuery<Peticion> query = cb.createQuery(Peticion.class);
@@ -107,7 +111,7 @@ public class PeticionFacade extends AbstractFacade<Peticion> {
         return emm.createQuery(query).getResultList();
     }
     
-    public List<Peticion> findPendientes() {
+    public List<Peticion> getPendientes() {
         EntityManager emm = getEntityManager();
         CriteriaBuilder cb = emm.getCriteriaBuilder();
         CriteriaQuery<Peticion> query = cb.createQuery(Peticion.class);        
@@ -123,4 +127,46 @@ public class PeticionFacade extends AbstractFacade<Peticion> {
         return emm.createQuery(query).getResultList();
     }
     
+    public List<Peticion> getVencidas() {
+        EntityManager emm = getEntityManager();
+        CriteriaBuilder cb = emm.getCriteriaBuilder();
+        CriteriaQuery<Peticion> query = cb.createQuery(Peticion.class);
+        Root<Peticion> peticion = query.from(Peticion.class);
+        query.where(cb.lessThan(peticion.get("vencimiento"), cb.currentDate()))
+             .orderBy(cb.desc(peticion.get("vencimiento")), cb.desc(peticion.get("createdAt")));
+
+        List<Peticion> result = emm.createQuery(query).getResultList();
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.YEAR, -2);
+        Date dateLimit = cal.getTime();
+
+        Iterator<Peticion> iterator = result.iterator();
+        while (iterator.hasNext()) {
+            Peticion p = iterator.next();
+
+            if (p.getPublicada() == 1) {
+                p.setPublicada((short) 0);
+                edit(p);
+            }
+
+            if (p.getVencimiento().before(dateLimit)) {
+                String oldPath = p.getImagen();
+                if (oldPath != null && !oldPath.isEmpty()) {
+                    File oldFile = new File(oldPath);
+                    if (oldFile.exists()) {
+                        if (oldFile.delete()) {
+                            System.out.println("Old image deleted successfully.");
+                        } else {
+                            System.err.println("Failed to delete the old image.");
+                        }
+                    }
+                }
+                iterator.remove();
+                remove(p);
+            }
+        }
+
+        return result;
+    }
+
 }

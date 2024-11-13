@@ -83,7 +83,7 @@
     <c:if test="${sessionScope.user.getRol().equals(\"redactor\")}">
         <nav class="bg-light p-2">
             <div class="container">
-                <ul class="navnavbar-light bg-light">
+                <ul class="nav navbar-light bg-light">
                     <li class="nav-item">
                         <a href="${pageContext.request.contextPath}/peticiones" class="nav-link ${pageContext.request.requestURI.endsWith('/peticiones') ? 'text-warning' : 'text-muted'}">
                             Publicadas

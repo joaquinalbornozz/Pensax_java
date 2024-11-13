@@ -84,7 +84,7 @@
     <c:if test="${sessionScope.user.getRol().equals(\"redactor\")}">
         <nav class="bg-light p-2">
             <div class="container">
-                <ul class="navnavbar-light bg-light">
+                <ul class="nav navbar-light bg-light">
                     <li class="nav-item">
                         <a href="${pageContext.request.contextPath}/peticiones" class="nav-link ${pageContext.request.requestURI.endsWith('/peticiones') ? 'text-warning' : 'text-muted'}">
                             Publicadas
@@ -165,9 +165,20 @@
         </div>
         <c:if test="${!peticion.getImagen().trim().isEmpty()}">
             <div class="card-footer bg-white">
-                <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" 
-                     alt="${peticion.getTitulo()}" 
-                     class="rounded img-fluid w-100" style="max-height: 300px; object-fit: cover;">
+                <c:choose>
+                    <c:when test="${peticion.getImagen().startsWith('http')}">
+                        <!-- Imagen de URL externa -->
+                        <img src="${peticion.getImagen()}" 
+                             alt="${peticion.getTitulo()}" 
+                             class="rounded img-fluid w-100" style="max-height: 300px; object-fit: cover;">
+                    </c:when>
+                    <c:otherwise>
+                        <!-- Imagen almacenada localmente en el servidor -->
+                        <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" 
+                             alt="${peticion.getTitulo()}" 
+                             class="rounded img-fluid w-100" style="max-height: 300px; object-fit: cover;">
+                    </c:otherwise>
+                </c:choose>
             </div>
         </c:if>
     </div>

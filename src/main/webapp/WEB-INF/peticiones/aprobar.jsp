@@ -82,7 +82,7 @@
     <c:if test="${sessionScope.user.getRol().equals(\"redactor\")}">
         <nav class="bg-light p-2">
             <div class="container">
-                <ul class="navnavbar-light bg-light">
+                <ul class="nav navbar-light bg-light">
                     <li class="nav-item">
                         <a href="${pageContext.request.contextPath}/peticiones" class="nav-link ${pageContext.request.requestURI.endsWith('/peticiones') ? 'text-warning' : 'text-muted'}">
                             Publicadas
@@ -129,9 +129,23 @@
 
         <c:if test="${not empty peticion.getImagen()}">
             <div class="ml-4">
-                <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" alt="${peticion.getTitulo()}" class="rounded w-25 h-25 object-cover">
+                <c:choose>
+                    <c:when test="${peticion.getImagen().startsWith('http')}">
+                        <!-- Imagen de URL externa -->
+                        <img src="${peticion.getImagen()}" 
+                             alt="${peticion.getTitulo()}" 
+                             class="rounded w-25 h-25 object-cover">
+                    </c:when>
+                    <c:otherwise>
+                        <!-- Imagen almacenada localmente en el servidor -->
+                        <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" 
+                             alt="${peticion.getTitulo()}" 
+                             class="rounded w-25 h-25 object-cover">
+                    </c:otherwise>
+                </c:choose>
             </div>
         </c:if>
+
     </div>
 </div>
 

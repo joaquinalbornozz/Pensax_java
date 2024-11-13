@@ -89,7 +89,7 @@
     <c:if test="${sessionScope.user.getRol().equals(\"redactor\")}">
         <nav class="bg-light p-2">
             <div class="container">
-                <ul class="navnavbar-light bg-light">
+                <ul class="nav navbar-light bg-light">
                     <li class="nav-item">
                         <a href="${pageContext.request.contextPath}/peticiones" class="nav-link ${pageContext.request.requestURI.endsWith('/peticiones') ? 'text-warning' : 'text-muted'}">
                             Publicadas
@@ -171,7 +171,16 @@
                                         <a href="${pageContext.request.contextPath}/peticiones/votar?id=${peticion.getIdpeticion()}" class="stretched-link"></a>
                                     </div>
                                     <c:if test="${not empty peticion.getImagen()}">
-                                        <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" class="card-img-bottom" alt="${peticion.getTitulo()}" style="max-height: 150px; object-fit: cover;">
+                                        <c:choose>
+                                            <c:when test="${peticion.getImagen().startsWith('http')}">
+                                                <!-- Imagen de URL externa -->
+                                                <img src="${peticion.getImagen()}" alt="${peticion.getTitulo()}" class="card-img-bottom" style="max-height: 150px; object-fit: cover;">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <!-- Imagen almacenada en el servidor -->
+                                                <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" class="card-img-bottom" alt="${peticion.getTitulo()}" style="max-height: 150px; object-fit: cover;">
+                                            </c:otherwise>
+                                        </c:choose>
                                     </c:if>
                                 </div>
                             </div>

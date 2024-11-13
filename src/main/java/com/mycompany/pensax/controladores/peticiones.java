@@ -59,7 +59,8 @@ import java.util.regex.Pattern;
             "/peticiones/eliminar",
             "/peticiones/publicar",
             "/peticiones/aprobar",
-            "/peticiones/rechazar"
+            "/peticiones/rechazar",
+            "/peticiones/vencidas"
         }
         )
 @MultipartConfig
@@ -82,6 +83,11 @@ public class peticiones extends HttpServlet {
         EntityManager em = null;
         String url= null;
         System.out.println(pathUsuario);
+        User user= (User) request.getSession().getAttribute("user");
+        if(user==null){
+            response.sendRedirect("/Pensax/");
+            return;
+        }
         try{
             switch(pathUsuario){
                 case"/peticiones":
@@ -112,11 +118,11 @@ public class peticiones extends HttpServlet {
                         response.sendRedirect("/Pensax/peticiones");
                         return;
                     }else{
-                        User user= (User) request.getSession().getAttribute("user");
+                        User user1= (User) request.getSession().getAttribute("user");
                         Carrera c= p.getCarreraidCarrera();
                         Voto uservote = p.getVotoCollection()
                                 .stream()
-                                .filter(voto -> voto.getUser().getIdusers().equals(user.getIdusers()))
+                                .filter(voto -> voto.getUser().getIdusers().equals(user1.getIdusers()))
                                 .findFirst()
                                 .orElse(null);
                         System.out.println(uservote);
@@ -140,22 +146,27 @@ public class peticiones extends HttpServlet {
                     }
                     break;
                 case "/peticiones/create":
+                    if(!user.getRol().equals("redactor")){
+                        response.sendRedirect("/Pensax/peticiones");
+                        return;
+                    }
                     carreras = carreraF.findAll();
                     request.setAttribute("carreras", carreras);
                     url="/WEB-INF/peticiones/create.jsp";
                     break;
                 case "/peticiones/mis":
-                    User user = (User) request.getSession().getAttribute("user");
-                    System.out.println(user);
-                    if(user==null){
-                        response.sendRedirect("/Pensax/login");
+                    user = (User) request.getSession().getAttribute("user");
+                    if(!user.getRol().equals("redactor")){
+                        response.sendRedirect("/Pensax/peticiones");
                         return;
                     }
+                    System.out.println(user);
+                    
                     String filter = request.getParameter("filter");
                     if(filter==null){
                         filter="";
                     }
-                    peticiones = petF.obtenerPeticionesPorUsuario(user, filter);
+                    peticiones = petF.getPeticionesPorUsuario(user, filter);
 
                     request.setAttribute("peticiones", peticiones);
                     url="/WEB-INF/peticiones/mispeticiones.jsp";
@@ -164,7 +175,10 @@ public class peticiones extends HttpServlet {
                     peticionId= Integer.valueOf(request.getParameter("id")) ;
                     p= petF.find(peticionId);
                     user = (User) request.getSession().getAttribute("user");
-                    
+                    if(!user.getRol().equals("redactor")){
+                        response.sendRedirect("/Pensax/peticiones");
+                        return;
+                    }
                     System.out.println(p);
                     System.out.println(user);
                     System.out.println(new Date().toString());
@@ -182,8 +196,8 @@ public class peticiones extends HttpServlet {
                 case "/peticiones/show":
                     peticionId = Integer.valueOf(request.getParameter("id"));
                     user = (User) request.getSession().getAttribute("user");
-
-                    if (user == null ||user.getRol()==null ||(!user.getRol().equals("admin")&& !user.getRol().equals("redactor"))) {
+                    
+                    if (user.getRol()==null ||(!user.getRol().equals("admin")&& !user.getRol().equals("redactor"))) {
                         request.getSession().setAttribute("error", "Vista no autorizada");
                         response.sendRedirect("/Pensax/peticiones");
                         return;
@@ -229,11 +243,19 @@ public class peticiones extends HttpServlet {
                     url="/WEB-INF/peticiones/show.jsp";
                     break;
                 case "/peticiones/pendientes":
-                    peticiones=petF.findPendientes();
+                    if(!user.getRol().equals("admin")){
+                        response.sendRedirect("/Pensax/peticiones");
+                        return;
+                    }
+                    peticiones=petF.getPendientes();
                     request.setAttribute("peticiones", peticiones);
                     url="/WEB-INF/peticiones/pendientes.jsp";
                     break;
                 case "/peticiones/aprobar":
+                    if(!user.getRol().equals("admin")){
+                        response.sendRedirect("/Pensax/peticiones");
+                        return;
+                    }
                     peticionId = Integer.valueOf(request.getParameter("id"));
                     peticion=petF.find(peticionId);
                     if(peticion==null || peticion.getRechazada()==1 || peticion.getPublicada()==1 || peticion.getVencimiento().before(new Date())){
@@ -265,6 +287,15 @@ public class peticiones extends HttpServlet {
                     request.setAttribute("carrera", carreraTitulo);
                     url="/WEB-INF/peticiones/aprobar.jsp";
                     break;
+                case "/peticiones/vencidas":
+                    if(!user.getRol().equals("admin")){
+                        response.sendRedirect("/Pensax/peticiones");
+                        return;
+                    }
+                    peticiones= petF.getVencidas();
+                    request.setAttribute("peticiones", peticiones);
+                    url="/WEB-INF/peticiones/vencidas.jsp";
+                    break;
                 
                 
             }
@@ -291,6 +322,11 @@ public class peticiones extends HttpServlet {
         String pathUsuario = request.getServletPath();
         EntityManager em = null;
         System.out.println(pathUsuario);
+        User user= (User) request.getSession().getAttribute("user");
+        if(user==null){
+            response.sendRedirect("/Pensax/");
+            return;
+        }
         try{
             switch(pathUsuario){
                 case "/peticiones/votar":
@@ -302,7 +338,7 @@ public class peticiones extends HttpServlet {
                         anonimo = Short.valueOf(request.getParameter("anonimo")==null?"0":"1");
                         //System.out.println(voto);
                         //System.out.println(anonimo);
-                        User user = (User) request.getSession().getAttribute("user");
+                        User user1 = (User) request.getSession().getAttribute("user");
                         //System.out.println(user);
                         utx.begin();
                         em= emf.createEntityManager();
@@ -315,7 +351,7 @@ public class peticiones extends HttpServlet {
 
                         // el usuario ya votó?
                         Voto userVote = peticion.getVotoCollection().stream()
-                                                 .filter(v -> v.getUser().getIdusers().equals(user.getIdusers()))
+                                                 .filter(v -> v.getUser().getIdusers().equals(user1.getIdusers()))
                                                  .findFirst()
                                                  .orElse(null);
 
@@ -376,9 +412,9 @@ public class peticiones extends HttpServlet {
 
                         Date vencimiento = java.sql.Date.valueOf(vencimientoStr);
 
-                        User user = (User) request.getSession().getAttribute("user");
-                        if (user == null) {
-                            response.sendRedirect("/Pensax/login");
+                        user = (User) request.getSession().getAttribute("user");
+                        if(!user.getRol().equals("redactor")){
+                            response.sendRedirect("/Pensax/peticiones");
                             return;
                         }
 
@@ -441,6 +477,10 @@ public class peticiones extends HttpServlet {
                     break;
                 case "/peticiones/editar":
                     try {
+                        if(!user.getRol().equals("redactor")){
+                            response.sendRedirect("/Pensax/peticiones");
+                            return;
+                        }
                         System.out.println("Editando petición");
 
                         String peticionId = request.getParameter("id");
@@ -531,6 +571,10 @@ public class peticiones extends HttpServlet {
                             request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
                         }
                 case "/peticiones/publicar":
+                    if(!user.getRol().equals("admin")){
+                        response.sendRedirect("/Pensax/peticiones");
+                        return;
+                    }
                     Integer peticionId = Integer.valueOf(request.getParameter("id"));
                     Peticion peticion=petF.find(peticionId);
                     if(peticion==null || peticion.getRechazada()==1 || peticion.getPublicada()==1 || peticion.getVencimiento().before(new Date())){
@@ -544,6 +588,10 @@ public class peticiones extends HttpServlet {
                     response.sendRedirect("./pendientes");
                     break;
                 case "/peticiones/eliminar":
+                    if(!user.getRol().equals("admin")){
+                        response.sendRedirect("/Pensax/peticiones");
+                        return;
+                    }
                     peticionId = Integer.valueOf(request.getParameter("id"));
                     peticion=petF.find(peticionId);
                     if(peticion==null){
@@ -551,11 +599,27 @@ public class peticiones extends HttpServlet {
                         response.sendRedirect("./pendientes");
                         return;
                     }
+                    String oldPath = peticion.getImagen();
+
+                    if (oldPath != null && !oldPath.isEmpty()) {
+                        File oldFile = new File(oldPath);
+                        if (oldFile.exists()) {
+                            if (oldFile.delete()) {
+                                System.out.println("Old image deleted successfully.");
+                            } else {
+                                System.err.println("Failed to delete the old image.");
+                            }
+                        }
+                    }
                     petF.remove(peticion);
                     request.getSession().setAttribute("success", "Petición eliminada");
                     response.sendRedirect("./pendientes");
                     break;
                 case "/peticiones/rechazar":
+                    if(!user.getRol().equals("admin")){
+                        response.sendRedirect("/Pensax/peticiones");
+                        return;
+                    }
                     peticionId = Integer.valueOf(request.getParameter("id"));
                     String comentario = request.getParameter("comentario");
 
