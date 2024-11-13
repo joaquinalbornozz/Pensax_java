@@ -45,8 +45,8 @@
                             <%= session.getAttribute("userFullName") %>
                         </a>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                            <a class="dropdown-item" href="./profile.jsp">Perfil</a>
-                            <a class="dropdown-item" href="./logout">Salir</a>
+                            <a class="dropdown-item" href="${pageContext.request.contextPath}/profile">Perfil</a>
+                            <a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Salir</a>
                         </div>
                     </li>
                 </ul>
@@ -112,7 +112,24 @@
         <p class="text-muted mb-4">Carrera: ${carrera}</p>
         <p class="text-muted mb-4">Usuario: ${usuario}</p>
         <p class="text-muted mb-4">Vencimiento:<fmt:formatDate value="${peticion.getVencimiento()}" pattern="dd/MM/yyyy" /></p>
-
+        <c:if test="${not empty peticion.getImagen()}">
+            <div class="ml-4 p-4">
+                <c:choose>
+                    <c:when test="${peticion.getImagen().startsWith('http')}">
+                        <!-- Imagen de URL externa -->
+                        <img src="${peticion.getImagen()}" 
+                             alt="${peticion.getTitulo()}" 
+                             class="rounded w-25 h-auto object-cover">
+                    </c:when>
+                    <c:otherwise>
+                        <!-- Imagen almacenada localmente en el servidor -->
+                        <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" 
+                             alt="${peticion.getTitulo()}" 
+                             class="rounded w-25 h-auto object-cover">
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </c:if>
         <div class="d-flex mb-4">
             <form id="peticion-form" class="mr-3">
                 <button type="button" class="btn btn-success" onclick="openModal('confirmarPublicacionModal')">
@@ -127,24 +144,7 @@
             </form>
         </div>
 
-        <c:if test="${not empty peticion.getImagen()}">
-            <div class="ml-4">
-                <c:choose>
-                    <c:when test="${peticion.getImagen().startsWith('http')}">
-                        <!-- Imagen de URL externa -->
-                        <img src="${peticion.getImagen()}" 
-                             alt="${peticion.getTitulo()}" 
-                             class="rounded w-25 h-25 object-cover">
-                    </c:when>
-                    <c:otherwise>
-                        <!-- Imagen almacenada localmente en el servidor -->
-                        <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" 
-                             alt="${peticion.getTitulo()}" 
-                             class="rounded w-25 h-25 object-cover">
-                    </c:otherwise>
-                </c:choose>
-            </div>
-        </c:if>
+        
 
     </div>
 </div>

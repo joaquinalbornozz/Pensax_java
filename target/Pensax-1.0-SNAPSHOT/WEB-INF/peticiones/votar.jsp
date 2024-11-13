@@ -47,8 +47,8 @@
                             <%= session.getAttribute("userFullName") %>
                         </a>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                            <a class="dropdown-item" href="./profile.jsp">Perfil</a>
-                            <a class="dropdown-item" href="./logout">Salir</a>
+                            <a class="dropdown-item" href="${pageContext.request.contextPath}/profile">Perfil</a>
+                            <a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Salir</a>
                         </div>
                     </li>
                 </ul>
@@ -124,9 +124,26 @@
                     ${successMessage}
                 </div>
             </c:if>
-
+        <c:if test="${!peticion.getImagen().trim().isEmpty()}">
+            <div class="card-footer bg-white">
+                <c:choose>
+                    <c:when test="${peticion.getImagen().startsWith('http')}">
+                        <!-- Imagen de URL externa -->
+                        <img src="${peticion.getImagen()}" 
+                             alt="${peticion.getTitulo()}" 
+                             class="rounded img-fluid w-70 h-auto" >
+                    </c:when>
+                    <c:otherwise>
+                        <!-- Imagen almacenada localmente en el servidor -->
+                        <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" 
+                             alt="${peticion.getTitulo()}" 
+                             class="rounded img-fluid w-70 h-auto" >
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </c:if>
             <c:if test="${!uservote}">
-                <form id="vote-form" method="post" action="./votar?id=${peticion.getIdpeticion()}">
+                <form id="vote-form" method="post" action="/Pensax/peticiones/votar?id=${peticion.getIdpeticion()}">
                     <div class="mb-3">
                         <label class="form-label">¿Qué posición tomas frente a esta petición?</label>
                         <div class="form-check">
@@ -163,24 +180,7 @@
                 </div>
             </c:if>
         </div>
-        <c:if test="${!peticion.getImagen().trim().isEmpty()}">
-            <div class="card-footer bg-white">
-                <c:choose>
-                    <c:when test="${peticion.getImagen().startsWith('http')}">
-                        <!-- Imagen de URL externa -->
-                        <img src="${peticion.getImagen()}" 
-                             alt="${peticion.getTitulo()}" 
-                             class="rounded img-fluid w-100" style="max-height: 300px; object-fit: cover;">
-                    </c:when>
-                    <c:otherwise>
-                        <!-- Imagen almacenada localmente en el servidor -->
-                        <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" 
-                             alt="${peticion.getTitulo()}" 
-                             class="rounded img-fluid w-100" style="max-height: 300px; object-fit: cover;">
-                    </c:otherwise>
-                </c:choose>
-            </div>
-        </c:if>
+        
     </div>
 </div>
     <footer class="bg-dark text-white py-4 mt-auto">

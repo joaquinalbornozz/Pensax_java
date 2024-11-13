@@ -97,14 +97,17 @@ public class peticiones extends HttpServlet {
 
                     List<Carrera> carreras = carreraF.findAll();
                     for(Peticion p : peticiones){
-                        String imagePath = p.getImagen();
+                        if(!p.isImageUrl()){
+                            String imagePath = p.getImagen();
 
-                        // Replace backslashes with forward slashes
-                        if (imagePath != null) {
-                            imagePath = imagePath.replace("\\", "/");
-                            imagePath = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+
+                            if (imagePath != null) {
+                                imagePath = imagePath.replace("\\", "/");
+                                imagePath = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+                            }
+
+                            p.setImagen(imagePath);
                         }
-                        p.setImagen(imagePath);
                     }
 
                     request.setAttribute("peticiones", peticiones);
@@ -128,16 +131,17 @@ public class peticiones extends HttpServlet {
                         System.out.println(uservote);
                         boolean uv;
                         uv = uservote != null;
-                        String imagePath = p.getImagen();
+                        if(!p.isImageUrl()){
+                            String imagePath = p.getImagen();
 
-                        // Replace backslashes with forward slashes
-                        if (imagePath != null) {
-                            imagePath = imagePath.replace("\\", "/");
-                            imagePath = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+
+                            if (imagePath != null) {
+                                imagePath = imagePath.replace("\\", "/");
+                                imagePath = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+                            }
+
+                            p.setImagen(imagePath);
                         }
-
-                        // Set the modified image path back to the peticion object if needed or pass it as an attribute
-                        p.setImagen(imagePath);
                         request.setAttribute("peticion", p);
                         request.setAttribute("usuario", user);
                         request.setAttribute("carrera", c);
@@ -184,7 +188,7 @@ public class peticiones extends HttpServlet {
                     System.out.println(new Date().toString());
                     
                     if(p==null || p.getPublicada()==1 || p.getVencimiento().before(new Date()) || !p.getUserIdusers().equals(user)){
-                        request.setAttribute("successMessage", "No puede editar esta peticion");
+                        request.getSession().setAttribute("error", "No puede editar esta peticion");
                         url="/WEB-INF/peticiones/mispeticiones.jsp";
                     }else{
                         carreras= carreraF.findAll();
@@ -226,16 +230,17 @@ public class peticiones extends HttpServlet {
                         carrera = "Sin carrera especificada";
                     }
                     
-                    String imagePath = peticion.getImagen();
+                    if(!peticion.isImageUrl()){
+                         String imagePath = peticion.getImagen();
 
-                    // Replace backslashes with forward slashes
-                    if (imagePath != null) {
-                        imagePath = imagePath.replace("\\", "/");
-                        imagePath = imagePath.substring(imagePath.lastIndexOf('/') + 1);
-                    }
 
-                    // Set the modified image path back to the peticion object if needed or pass it as an attribute
-                    peticion.setImagen(imagePath);
+                         if (imagePath != null) {
+                             imagePath = imagePath.replace("\\", "/");
+                             imagePath = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+                         }
+
+                         peticion.setImagen(imagePath);
+                     }
 
                     request.setAttribute("peticion", peticion);
                     request.setAttribute("usuario", usuario);
@@ -271,17 +276,17 @@ public class peticiones extends HttpServlet {
                     } else {
                         carreraTitulo = "Sin carrera especificada";
                     }
-                    imagePath = peticion.getImagen();
+                    if(!peticion.isImageUrl()){
+                        String imagePath = peticion.getImagen();
+                    
 
-                    // Replace backslashes with forward slashes
-                    if (imagePath != null) {
-                        imagePath = imagePath.replace("\\", "/");
-                        imagePath = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+                        if (imagePath != null) {
+                            imagePath = imagePath.replace("\\", "/");
+                            imagePath = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+                        }
+
+                        peticion.setImagen(imagePath);
                     }
-
-                    // Set the modified image path back to the peticion object if needed or pass it as an attribute
-                    peticion.setImagen(imagePath);
-                    // Set attributes for JSP
                     request.setAttribute("peticion", peticion);
                     request.setAttribute("usuario", nombre);
                     request.setAttribute("carrera", carreraTitulo);
@@ -344,7 +349,8 @@ public class peticiones extends HttpServlet {
                         em= emf.createEntityManager();
                         Peticion peticion = petF.find(peticionId);
                         if (peticion == null || peticion.getRechazada()==1 || peticion.getPublicada()==0) {
-                            response.sendRedirect("./peticiones?error=La petición no puede ser votada.");
+                            request.getSession().setAttribute("error", "No se puede votar la petición");
+                            response.sendRedirect("./peticiones");
                             return;
                         }
                         //System.out.println(peticion);
@@ -356,7 +362,8 @@ public class peticiones extends HttpServlet {
                                                  .orElse(null);
 
                         if (userVote != null) {
-                            response.sendRedirect("/Pensax/peticiones?error=Ya has votado esta petición.");
+                            request.getSession().setAttribute("error", "No se puede votar la petición");
+                            response.sendRedirect("/Pensax/peticiones");
                             return;
                         }
 
@@ -381,7 +388,7 @@ public class peticiones extends HttpServlet {
                         petF.edit(peticion);
 
                         utx.commit();
-                        response.sendRedirect("Pensax/peticiones/votar?id=" + peticionId);
+                        response.sendRedirect("/Pensax/peticiones/votar?id=" + peticionId);
 
                     } catch (HeuristicMixedException | HeuristicRollbackException | NotSupportedException | RollbackException | SystemException | IOException | IllegalStateException | NumberFormatException | SecurityException e) {
                         try {
@@ -451,28 +458,28 @@ public class peticiones extends HttpServlet {
                         em.persist(peticion);
                         utx.commit();
 
-                        request.setAttribute("successMessage", "Petición creada correctamente!");
+                        request.setAttribute("success", "Petición creada correctamente!");
                         response.sendRedirect("./mis");
 
                     } catch (IOException e) {
                         System.err.println("Error de IO: " + e.getMessage());
-                        request.setAttribute("error", "Ocurrió un error al procesar la solicitud.");
-                        request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
+                        request.getSession().setAttribute("error", "Ocurrió un error al procesar la solicitud.");
+                        response.sendRedirect("/Pensax/peticiones");
 
                     } catch (ServletException e) {
                         System.err.println("Error en el servlet: " + e.getMessage());
-                        request.setAttribute("error", "Ocurrió un error al procesar la solicitud.");
-                        request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
+                        request.getSession().setAttribute("error", "Ocurrió un error al procesar la solicitud.");
+                        response.sendRedirect("/Pensax/peticiones");
 
                     } catch (NumberFormatException e) {
                         System.err.println("Error en el formato de número: " + e.getMessage());
-                        request.setAttribute("error", "Número inválido en la solicitud.");
-                        request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
+                        request.getSession().setAttribute("error", "Número inválido en la solicitud.");
+                        response.sendRedirect("/Pensax/peticiones");
 
                     } catch (HeuristicMixedException | HeuristicRollbackException | NotSupportedException | RollbackException | SystemException | IllegalStateException | SecurityException e) {
                         System.err.println("Error general: " + e.getMessage());
-                        request.setAttribute("error", "Ocurrió un error inesperado.");
-                        request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
+                        request.getSession().setAttribute("error", "Ocurrió un error inesperado.");
+                        response.sendRedirect("/Pensax/peticiones");
                     }
                     break;
                 case "/peticiones/editar":
@@ -485,15 +492,15 @@ public class peticiones extends HttpServlet {
 
                         String peticionId = request.getParameter("id");
                         if (peticionId == null || peticionId.trim().isEmpty()) {
-                            request.setAttribute("error", "ID de la petición no proporcionado.");
-                            request.getRequestDispatcher("/WEB-INF/peticiones/mispeticiones.jsp").forward(request, response);
+                            request.getSession().setAttribute("error", "ID de la petición no proporcionado.");
+                            response.sendRedirect("./mis");
                             return;
                         }
 
                         Peticion peticion = petF.find(Integer.valueOf(peticionId));
                         if (peticion == null) {
-                            request.setAttribute("successMessage", "La petición no existe.");
-                            request.getRequestDispatcher("/WEB-INF/peticiones/mispeticiones.jsp").forward(request, response);
+                            request.getSession().setAttribute("successMessage", "La petición no existe.");
+                            response.sendRedirect("./mis");
                             return;
                         }
 
@@ -505,7 +512,7 @@ public class peticiones extends HttpServlet {
 
                         if (!isValidTitulo(titulo) || !isValidDescripcion(descripcion) || !isValidVencimiento(vencimientoStr)) {
                             request.setAttribute("error", "Los datos no son válidos.");
-                            request.getRequestDispatcher("/WEB-INF/peticiones/edit.jsp").forward(request, response);
+                            response.sendRedirect("/Pensax/peticiones/edit?id="+peticionId);
                             return;
                         }
 
@@ -552,23 +559,23 @@ public class peticiones extends HttpServlet {
 
                         } catch (IOException e) {
                             System.err.println("Error de IO: " + e.getMessage());
-                            request.setAttribute("error", "Ocurrió un error al procesar la solicitud.");
-                            request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
+                            request.getSession().setAttribute("error", "Ocurrió un error al procesar la solicitud.");
+                        response.sendRedirect("/Pensax/peticiones");
 
                         } catch (ServletException e) {
                             System.err.println("Error en el servlet: " + e.getMessage());
-                            request.setAttribute("error", "Ocurrió un error al procesar la solicitud.");
-                            request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
+                            request.getSession().setAttribute("error", "Ocurrió un error al procesar la solicitud.");
+                            response.sendRedirect("/Pensax/peticiones");
 
                         } catch (NumberFormatException e) {
                             System.err.println("Error en el formato de número: " + e.getMessage());
-                            request.setAttribute("error", "Número inválido en la solicitud.");
-                            request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
+                            request.getSession().setAttribute("error", "Número inválido en la solicitud.");
+                            response.sendRedirect("/Pensax/peticiones");
 
                         } catch (IllegalStateException | SecurityException e) {
                             System.err.println("Error general: " + e.getMessage());
-                            request.setAttribute("error", "Ocurrió un error inesperado.");
-                            request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
+                            request.getSession().setAttribute("error", "Ocurrió un error inesperado.");
+                            response.sendRedirect("/Pensax/peticiones");
                         }
                 case "/peticiones/publicar":
                     if(!user.getRol().equals("admin")){
@@ -709,7 +716,6 @@ public class peticiones extends HttpServlet {
             dir.mkdirs();
         }
 
-        // Crear la ruta completa del archivo
         File file = new File(dir, fileName);
         try (InputStream input = filePart.getInputStream()) {
             Files.copy(input, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -727,6 +733,6 @@ public class peticiones extends HttpServlet {
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

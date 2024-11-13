@@ -52,8 +52,8 @@
                             <%= session.getAttribute("userFullName") %>
                         </a>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                            <a class="dropdown-item" href="./profile.jsp">Perfil</a>
-                            <a class="dropdown-item" href="./logout">Salir</a>
+                            <a class="dropdown-item" href="${pageContext.request.contextPath}/profile">Perfil</a>
+                            <a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Salir</a>
                         </div>
                     </li>
                 </ul>
@@ -116,20 +116,16 @@
         <div class="container">
             <h2 class="font-weight-bold text-primary mb-3">Peticiones</h2>
 
-            <!-- Mensajes de éxito y error -->
-            <c:if test="${not empty success}">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <c:out value="${success}" />
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            </c:if>
-
-            <c:if test="${not empty error}">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <c:out value="${error}" />
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            </c:if>
+            <!-- Success Message -->
+        <c:if test="${not empty sessionScope.success}">
+            <div class="alert alert-success font-weight-bold mb-4">${sessionScope.success}</div>
+            <c:remove var="success" scope="session"/>
+        </c:if>
+        <!-- Error Message -->
+        <c:if test="${not empty sessionScope.error}">
+            <div class="alert alert-danger font-weight-bold mb-4">${sessionScope.error}</div>
+            <c:remove var="error" scope="session"/>
+        </c:if>
             
             <c:if test="${sessionScope.error!=null && not empty sessionScope.error}">
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">

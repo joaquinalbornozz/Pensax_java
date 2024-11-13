@@ -46,8 +46,8 @@
                             <%= session.getAttribute("userFullName") %>
                         </a>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                            <a class="dropdown-item" href="./profile.jsp">Perfil</a>
-                            <a class="dropdown-item" href="./logout">Salir</a>
+                            <a class="dropdown-item" href="${pageContext.request.contextPath}/profile.jsp">Perfil</a>
+                            <a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Salir</a>
                         </div>
                     </li>
                 </ul>
@@ -109,10 +109,15 @@
         <h2 class="text-center text-dark mb-4">Mis Peticiones</h2>
         
         <!-- Mensaje de éxito -->
-        <c:if test="${not empty successMessage}">
-            <div class="alert alert-success font-weight-bold">
-                ${successMessage}
-            </div>
+        <!-- Success Message -->
+        <c:if test="${not empty sessionScope.success}">
+            <div class="alert alert-success font-weight-bold mb-4">${sessionScope.success}</div>
+            <c:remove var="success" scope="session"/>
+        </c:if>
+        <!-- Error Message -->
+        <c:if test="${not empty sessionScope.error}">
+            <div class="alert alert-danger font-weight-bold mb-4">${sessionScope.error}</div>
+            <c:remove var="error" scope="session"/>
         </c:if>
 
         <!-- Filtro de Peticiones -->

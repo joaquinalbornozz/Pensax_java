@@ -45,8 +45,8 @@
                             <%= session.getAttribute("userFullName") %>
                         </a>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                            <a class="dropdown-item" href="./profile.jsp">Perfil</a>
-                            <a class="dropdown-item" href="./logout">Salir</a>
+                            <a class="dropdown-item" href="${pageContext.request.contextPath}/profile">Perfil</a>
+                            <a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Salir</a>
                         </div>
                     </li>
                 </ul>
