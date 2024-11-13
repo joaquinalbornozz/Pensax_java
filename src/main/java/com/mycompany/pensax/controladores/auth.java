@@ -90,8 +90,8 @@ public class auth extends HttpServlet {
                         sesF.remove(sesF.find(sessionId));
                     }
 
-                    url="/WEB-INF/index.jsp";
-                    break;
+                    response.sendRedirect("/Pensax");
+                    return;
             }
             try {
                 request.getRequestDispatcher(url).forward(request, response);

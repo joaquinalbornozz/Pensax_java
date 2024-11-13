@@ -82,13 +82,10 @@ public class peticiones extends HttpServlet {
                 case"/peticiones":
                     String carreraId = request.getParameter("carrera_id");
 
-                    // Obtener las peticiones filtradas
                     List<Peticion> peticiones = petF.getPeticionesPulicadas(carreraId);
 
-                    // Obtener todas las carreras para el filtro
                     List<Carrera> carreras = carreraF.findAll();
 
-                    // Configurar los atributos para la vista
                     request.setAttribute("peticiones", peticiones);
                     request.setAttribute("carreras", carreras);
                     url="/WEB-INF/peticiones/index.jsp";
@@ -97,7 +94,7 @@ public class peticiones extends HttpServlet {
                     Integer peticionId= Integer.valueOf(request.getParameter("id")) ;
                     Peticion p= petF.find(peticionId);
                     if((p.getRechazada()==1) || (p.getPublicada()==0)){
-                        response.sendRedirect("./");
+                        response.sendRedirect("/Pensax/peticiones");
                         return;
                     }else{
                         User user= (User) request.getSession().getAttribute("user");
@@ -133,10 +130,8 @@ public class peticiones extends HttpServlet {
                     if(filter==null){
                         filter="";
                     }
-                    // Llamar al EJB para obtener las peticiones del usuario
                     peticiones = petF.obtenerPeticionesPorUsuario(user, filter);
 
-                    // Enviar la lista de peticiones a la vista JSP
                     request.setAttribute("peticiones", peticiones);
                     url="/WEB-INF/peticiones/mispeticiones.jsp";
                     break;
@@ -237,24 +232,20 @@ public class peticiones extends HttpServlet {
                     try {
                         System.out.println("Creando petición");
 
-                        // Obtener parámetros del formulario
                         String titulo = request.getParameter("titulo");
                         String descripcion = request.getParameter("descripcion");
                         String vencimientoStr = request.getParameter("vencimiento");
                         String carreraId = request.getParameter("carrera_id");
                         String imagenUrl = request.getParameter("imagen_url");
-                        System.out.println(titulo);
-                        // Validación de campos
+                        //System.out.println(titulo);
                         if (!isValidTitulo(titulo) || !isValidDescripcion(descripcion) || !isValidVencimiento(vencimientoStr)) {
                             request.setAttribute("error", "Los datos no son válidos.");
                             request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
                             return;
                         }
 
-                        // Convertir la fecha de vencimiento
                         Date vencimiento = java.sql.Date.valueOf(vencimientoStr);
 
-                        // Validar sesión del usuario
                         User user = (User) request.getSession().getAttribute("user");
                         if (user == null) {
                             response.sendRedirect("/Pensax/login");
@@ -266,7 +257,7 @@ public class peticiones extends HttpServlet {
                         peticion.setTitulo(titulo);
                         peticion.setDescripcion(descripcion);
                         peticion.setVencimiento(vencimiento);
-                        peticion.setCarreraidCarrera(carreraId != null ? carreraF.find(Integer.valueOf(carreraId)) : null);
+                        peticion.setCarreraidCarrera(null != carreraId && !carreraId.trim().isEmpty() ? carreraF.find(Integer.valueOf(carreraId)) : null);
                         peticion.setPositivos(0);
                         peticion.setNegativos(0);
                         peticion.setUserIdusers(user);
@@ -366,7 +357,7 @@ public class peticiones extends HttpServlet {
 
     private String saveImageFile(Part filePart) throws IOException {
         String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
-        String uploadDir = getServletContext().getRealPath("/uploads/imagenes");
+        String uploadDir ="C:\\Users\\users\\Documents\\Cristiannika\\TERCER AnO FACULTAD\\PROGRAMACION WEB III\\Pensax\\src\\main\\webapp\\WEB-INF\\uploads\\imagenes";
 
         // Crear el directorio si no existe
         File dir = new File(uploadDir);
@@ -380,7 +371,7 @@ public class peticiones extends HttpServlet {
             Files.copy(input, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
 
-        return file.getAbsolutePath(); // Retorna la ruta completa del archivo guardado
+        return file.getAbsolutePath(); 
     }
 
 
