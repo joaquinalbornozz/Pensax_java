@@ -1,17 +1,19 @@
 <%-- 
-    Document   : create
-    Created on : 11 nov 2024, 17:57:32
+    Document   : pendientes
+    Created on : 13 nov 2024, 3:44:49
     Author     : users
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"language="java"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Crear Nueva Petición</title>
-    <!-- Agrega el enlace a Bootstrap CSS -->
+    <title>Peticiones</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
@@ -103,101 +105,48 @@
         </nav>
     </c:if>
 
-<div class="container my-5 p-4 bg-light rounded shadow">
-    <h2 class="text-center text-primary mb-4">Crear Nueva Petición</h2>
+    <div class="container my-4 p-4 bg-white rounded shadow-lg">
+        <!-- Success Message -->
+        <c:if test="${not empty sessionScope.success}">
+            <div class="alert alert-success font-weight-bold mb-4">${sessionScope.success}</div>
+            <c:remove var="success" scope="session"/>
+        </c:if>
+        <!-- Error Message -->
+        <c:if test="${not empty sessionScope.error}">
+            <div class="alert alert-danger font-weight-bold mb-4">${sessionScope.error}</div>
+            <c:remove var="error" scope="session"/>
+        </c:if>
+        <div class="text-center display-4 font-weight-bold mb-5 text-dark">Peticiones Pendientes</div>
 
-    <!-- Mensaje de errores si existen -->
-    <c:if test="${error.trim.notEmpty()}">
-        <div class="alert alert-danger">
-            <p>${error}</p>
-        </div>
-    </c:if>
-
-    <!-- Formulario para crear la petición -->
-    <form method="post" action="./create" enctype="multipart/form-data">
-        
-        <div class="form-group">
-            <label for="titulo" class="font-weight-bold">Título</label>
-            <input type="text" name="titulo" id="titulo" value="${param.titulo}" class="form-control" required>
-        </div>
-
-        <div class="form-group">
-            <label for="descripcion" class="font-weight-bold">Descripción</label>
-            <textarea name="descripcion" id="descripcion" rows="4" class="form-control" required>${param.descripcion}</textarea>
-        </div>
-
-        <div class="form-group">
-            <label class="font-weight-bold">Imagen</label>
-            <div class="form-check">
-                <input type="radio" id="file_choice" name="image_choice" value="file" class="form-check-input" checked>
-                <label for="file_choice" class="form-check-label">Subir archivo</label>
+        <c:forEach var="peticion" items="${peticiones}">
+            <div class="bg-light shadow-sm rounded p-4 d-flex align-items-center justify-content-between mb-3">
+                <div>
+                    <h5 class="font-weight-bold text-dark">${peticion.getTitulo()}</h5>
+                    <p class="text-muted">${fn:substring(peticion.getDescripcion(), 0, 50)}...</p>
+                    <p class="text-secondary">Vencimiento: <fmt:formatDate value="${peticion.getVencimiento()}" pattern="dd/MM/yyyy" /></p>
+                </div>
+                <div class="ml-4 d-flex gap-2">
+                    <a href="./aprobar?id=${peticion.getIdpeticion()}" class="btn btn-primary">Ver Detalles</a>
+                </div>
             </div>
-            <div class="form-check">
-                <input type="radio" id="url_choice" name="image_choice" value="url" class="form-check-input">
-                <label for="url_choice" class="form-check-label">Enlace URL</label>
+        </c:forEach>
+
+        <!-- No Peticiones Placeholder -->
+        <c:if test="${empty peticiones}">
+            <div class="bg-light shadow-sm rounded p-4 text-center">
+                <p class="text-muted">No hay peticiones pendientes</p>
             </div>
-        </div>
-
-        <div class="form-group" id="file_input">
-            <label for="imagen" class="font-weight-bold">Archivo de imagen</label>
-            <input type="file" name="imagen" id="imagen" class="form-control-file">
-        </div>
-
-        <div class="form-group" id="url_input" style="display: none;">
-            <label for="imagen_url" class="font-weight-bold">Enlace URL de la imagen</label>
-            <input type="text" name="imagen_url" id="imagen_url" class="form-control">
-        </div>
-
-        <div class="form-group">
-            <label for="vencimiento" class="font-weight-bold">Fecha de Vencimiento</label>
-            <input type="date" name="vencimiento" id="vencimiento" value="${param.vencimiento}" class="form-control" required>
-        </div>
-
-        <div class="form-group">
-            <label for="carrera_id" class="font-weight-bold">Carrera (Opcional)</label>
-            <select name="carrera_id" id="carrera_id" class="form-control">
-                <option value="">Selecciona una carrera</option>
-                <c:forEach var="carrera" items="${carreras}">
-                    <option value="${carrera.getIdCarrera()}" ${carrera.getIdCarrera() == param.carrera_id ? 'selected' : ''}>${carrera.getTitulo()}</option>
-                </c:forEach>
-            </select>
-        </div>
-
-        <div class="text-right">
-            <button type="submit" class="btn btn-primary">Crear Petición</button>
-        </div>
-    </form>
-</div>
-<!-- Footer -->
+        </c:if>
+    </div>
     <footer class="bg-dark text-white py-4 mt-auto">
         <div class="container text-center">
             <jsp:useBean id="now" class="java.util.Date" scope="request" />
             <p>&copy; <fmt:formatDate value="${now}" pattern="yyyy" /> Pensax. All rights reserved.</p>
         </div>
     </footer>
-<!-- Agrega los enlaces a Bootstrap y jQuery -->
+    <!-- Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const fileChoice = document.getElementById('file_choice');
-        const urlChoice = document.getElementById('url_choice');
-        const fileInput = document.getElementById('file_input');
-        const urlInput = document.getElementById('url_input');
-
-        fileChoice.addEventListener('change', function () {
-            fileInput.style.display = 'block';
-            urlInput.style.display = 'none';
-        });
-
-        urlChoice.addEventListener('change', function () {
-            fileInput.style.display = 'none';
-            urlInput.style.display = 'block';
-        });
-    });
-</script>
-
 </body>
 </html>

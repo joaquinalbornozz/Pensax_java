@@ -42,28 +42,24 @@ public class PeticionFacade extends AbstractFacade<Peticion> {
         EntityManager emm = getEntityManager();
         CriteriaBuilder cb = emm.getCriteriaBuilder();
         
-        // Crear la consulta de Peticion
         CriteriaQuery<Peticion> cq = cb.createQuery(Peticion.class);
         Root<Peticion> peticion = cq.from(Peticion.class);
 
-        // Construir predicados para los filtros
         Date now = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
         Predicate publicada = cb.equal(peticion.get("publicada"), true);
         Predicate noVencida = cb.greaterThanOrEqualTo(peticion.get("vencimiento"), now);
 
-        // Filtro de carrera (null o específico)
         Predicate carreraPredicate;
         if ("0".equals(carreraId)) {
             carreraPredicate = cb.isNull(peticion.get("carreraidCarrera"));
         } else if (carreraId != null && !carreraId.isEmpty()) {
             carreraPredicate = cb.equal(peticion.get("carreraidCarrera").get("idCarrera"), carreraId);
         } else {
-            carreraPredicate = cb.conjunction(); // Sin filtro de carrera
+            carreraPredicate = cb.conjunction(); 
         }
 
-        // Combinar los predicados
         cq.where(cb.and(publicada, noVencida, carreraPredicate));
-        cq.orderBy(cb.asc(peticion.get("vencimiento"))); // Ordenar por fecha de creación
+        cq.orderBy(cb.asc(peticion.get("vencimiento"))); 
 
         return emm.createQuery(cq)
                  .getResultList();
@@ -80,7 +76,6 @@ public class PeticionFacade extends AbstractFacade<Peticion> {
         Predicate userPredicate = cb.equal(peticionRoot.get("userIdusers"), user);
         Predicate filterPredicate = cb.conjunction();
 
-        // Aplicar filtro específico
         switch (filter) {
             case "publicadas":
                 filterPredicate = cb.equal(peticionRoot.get("publicada"),1);
@@ -102,16 +97,29 @@ public class PeticionFacade extends AbstractFacade<Peticion> {
                 filterPredicate = cb.lessThan(peticionRoot.get("vencimiento"), new Date());
                 break;
             default:
-                // Traer todas las peticiones, incluyendo eliminadas si existe esa configuración
                 return emm.createQuery(query.select(peticionRoot).where(userPredicate).orderBy(cb.desc(peticionRoot.get("createdAt")))).getResultList();
         }
 
-        // Combinar filtros de usuario y condición
         query.select(peticionRoot)
              .where(cb.and(userPredicate, filterPredicate))
              .orderBy(cb.desc(peticionRoot.get("createdAt")));
 
-        // Ejecutar la consulta
+        return emm.createQuery(query).getResultList();
+    }
+    
+    public List<Peticion> findPendientes() {
+        EntityManager emm = getEntityManager();
+        CriteriaBuilder cb = emm.getCriteriaBuilder();
+        CriteriaQuery<Peticion> query = cb.createQuery(Peticion.class);        
+        Root<Peticion> peticion = query.from(Peticion.class);
+
+        Predicate nopublicada = cb.equal(peticion.get("publicada"),0);
+        Predicate norechazada = cb.equal(peticion.get("rechazada"),0);
+        Predicate novencida = cb.greaterThanOrEqualTo(peticion.get("vencimiento"), new Date());
+
+        query.where(cb.and(nopublicada, norechazada, novencida))
+             .orderBy(cb.asc(peticion.get("vencimiento")), cb.asc(peticion.get("createdAt")));
+
         return emm.createQuery(query).getResultList();
     }
     

@@ -1,21 +1,21 @@
 <%-- 
-    Document   : create
-    Created on : 11 nov 2024, 17:57:32
+    Document   : aprobar
+    Created on : 13 nov 2024, 8:26:49
     Author     : users
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"language="java"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Crear Nueva Petición</title>
-    <!-- Agrega el enlace a Bootstrap CSS -->
+    <title>Detalles de la Petición</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-<!-- Navigation -->
+ <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
             <a class="navbar-brand" href="${pageContext.request.contextPath}/peticiones">
@@ -103,101 +103,120 @@
         </nav>
     </c:if>
 
-<div class="container my-5 p-4 bg-light rounded shadow">
-    <h2 class="text-center text-primary mb-4">Crear Nueva Petición</h2>
+<div class="container my-8 p-6 bg-white rounded-lg shadow-lg">
+    <h2 class="font-weight-bold text-xl text-center mb-5">Detalles de la Petición</h2>
 
-    <!-- Mensaje de errores si existen -->
-    <c:if test="${error.trim.notEmpty()}">
-        <div class="alert alert-danger">
-            <p>${error}</p>
+    <div class="bg-light p-4 rounded shadow-sm">
+        <h2 class="font-weight-bold text-dark mb-4">${peticion.getTitulo()}</h2>
+        <p class="text-secondary mb-4">${peticion.getDescripcion()}</p>
+        <p class="text-muted mb-4">Carrera: ${carrera}</p>
+        <p class="text-muted mb-4">Usuario: ${usuario}</p>
+        <p class="text-muted mb-4">Vencimiento:<fmt:formatDate value="${peticion.getVencimiento()}" pattern="dd/MM/yyyy" /></p>
+
+        <div class="d-flex mb-4">
+            <form id="peticion-form" class="mr-3">
+                <button type="button" class="btn btn-success" onclick="openModal('confirmarPublicacionModal')">
+                    Aprobar y Publicar
+                </button>
+                <button type="button" class="btn btn-warning" onclick="openModal('confirmarRechazoModal')">
+                    Rechazar
+                </button>
+                <button type="button" class="btn btn-danger" onclick="openModal('confirmarEliminacionModal')">
+                    Eliminar
+                </button>
+            </form>
         </div>
-    </c:if>
 
-    <!-- Formulario para crear la petición -->
-    <form method="post" action="./create" enctype="multipart/form-data">
-        
-        <div class="form-group">
-            <label for="titulo" class="font-weight-bold">Título</label>
-            <input type="text" name="titulo" id="titulo" value="${param.titulo}" class="form-control" required>
-        </div>
-
-        <div class="form-group">
-            <label for="descripcion" class="font-weight-bold">Descripción</label>
-            <textarea name="descripcion" id="descripcion" rows="4" class="form-control" required>${param.descripcion}</textarea>
-        </div>
-
-        <div class="form-group">
-            <label class="font-weight-bold">Imagen</label>
-            <div class="form-check">
-                <input type="radio" id="file_choice" name="image_choice" value="file" class="form-check-input" checked>
-                <label for="file_choice" class="form-check-label">Subir archivo</label>
+        <c:if test="${not empty peticion.getImagen()}">
+            <div class="ml-4">
+                <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" alt="${peticion.getTitulo()}" class="rounded w-25 h-25 object-cover">
             </div>
-            <div class="form-check">
-                <input type="radio" id="url_choice" name="image_choice" value="url" class="form-check-input">
-                <label for="url_choice" class="form-check-label">Enlace URL</label>
-            </div>
-        </div>
-
-        <div class="form-group" id="file_input">
-            <label for="imagen" class="font-weight-bold">Archivo de imagen</label>
-            <input type="file" name="imagen" id="imagen" class="form-control-file">
-        </div>
-
-        <div class="form-group" id="url_input" style="display: none;">
-            <label for="imagen_url" class="font-weight-bold">Enlace URL de la imagen</label>
-            <input type="text" name="imagen_url" id="imagen_url" class="form-control">
-        </div>
-
-        <div class="form-group">
-            <label for="vencimiento" class="font-weight-bold">Fecha de Vencimiento</label>
-            <input type="date" name="vencimiento" id="vencimiento" value="${param.vencimiento}" class="form-control" required>
-        </div>
-
-        <div class="form-group">
-            <label for="carrera_id" class="font-weight-bold">Carrera (Opcional)</label>
-            <select name="carrera_id" id="carrera_id" class="form-control">
-                <option value="">Selecciona una carrera</option>
-                <c:forEach var="carrera" items="${carreras}">
-                    <option value="${carrera.getIdCarrera()}" ${carrera.getIdCarrera() == param.carrera_id ? 'selected' : ''}>${carrera.getTitulo()}</option>
-                </c:forEach>
-            </select>
-        </div>
-
-        <div class="text-right">
-            <button type="submit" class="btn btn-primary">Crear Petición</button>
-        </div>
-    </form>
+        </c:if>
+    </div>
 </div>
-<!-- Footer -->
+
+<!-- Modal for Publish Confirmation -->
+<div class="modal fade" id="confirmarPublicacionModal" tabindex="-1" role="dialog" aria-labelledby="confirmarPublicacionLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="./publicar?id=${peticion.getIdpeticion()}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmarPublicacionLabel">Confirmación de Publicación</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas publicar esta petición?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Sí, publicar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Reject Confirmation -->
+<div class="modal fade" id="confirmarRechazoModal" tabindex="-1" role="dialog" aria-labelledby="confirmarRechazoLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="./rechazar?id=${peticion.getIdpeticion()}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmarRechazoLabel">Confirmación de Rechazo</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas rechazar esta petición?</p>
+                    <textarea name="comentario" placeholder="Comentario" class="form-control mt-3" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Sí, rechazar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Delete Confirmation -->
+<div class="modal fade" id="confirmarEliminacionModal" tabindex="-1" role="dialog" aria-labelledby="confirmarEliminacionLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="./eliminar?id=${peticion.getIdpeticion()}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmarEliminacionLabel">Confirmación de Eliminación</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar esta petición?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
     <footer class="bg-dark text-white py-4 mt-auto">
         <div class="container text-center">
             <jsp:useBean id="now" class="java.util.Date" scope="request" />
             <p>&copy; <fmt:formatDate value="${now}" pattern="yyyy" /> Pensax. All rights reserved.</p>
         </div>
     </footer>
-<!-- Agrega los enlaces a Bootstrap y jQuery -->
+<script>
+    function openModal(modalId) {
+        $("#" + modalId).modal('show');
+    }
+</script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const fileChoice = document.getElementById('file_choice');
-        const urlChoice = document.getElementById('url_choice');
-        const fileInput = document.getElementById('file_input');
-        const urlInput = document.getElementById('url_input');
-
-        fileChoice.addEventListener('change', function () {
-            fileInput.style.display = 'block';
-            urlInput.style.display = 'none';
-        });
-
-        urlChoice.addEventListener('change', function () {
-            fileInput.style.display = 'none';
-            urlInput.style.display = 'block';
-        });
-    });
-</script>
-
 </body>
 </html>

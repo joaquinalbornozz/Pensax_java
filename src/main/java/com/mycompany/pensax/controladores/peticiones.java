@@ -54,7 +54,12 @@ import java.util.regex.Pattern;
             "/peticiones/votar",
             "/peticiones/create",
             "/peticiones/mis",
-            "/peticiones/show"
+            "/peticiones/show",
+            "/peticiones/pendientes",
+            "/peticiones/eliminar",
+            "/peticiones/publicar",
+            "/peticiones/aprobar",
+            "/peticiones/rechazar"
         }
         )
 @MultipartConfig
@@ -223,7 +228,45 @@ public class peticiones extends HttpServlet {
                     request.setAttribute("carrera", carrera);
                     url="/WEB-INF/peticiones/show.jsp";
                     break;
+                case "/peticiones/pendientes":
+                    peticiones=petF.findPendientes();
+                    request.setAttribute("peticiones", peticiones);
+                    url="/WEB-INF/peticiones/pendientes.jsp";
+                    break;
+                case "/peticiones/aprobar":
+                    peticionId = Integer.valueOf(request.getParameter("id"));
+                    peticion=petF.find(peticionId);
+                    if(peticion==null || peticion.getRechazada()==1 || peticion.getPublicada()==1 || peticion.getVencimiento().before(new Date())){
+                        request.getSession().setAttribute("error", "No se puede aprobar la petición");
+                        response.sendRedirect("./pendientes");
+                        return;
+                    }
+                    user= peticion.getUserIdusers();
+                    String nombre= user.getApellido() +" " + user.getNombre();
+                    String carreraTitulo;
+                    if (peticion.getCarreraidCarrera()!= null) {
+                        carreraTitulo = peticion.getCarreraidCarrera().getTitulo();
+                    } else {
+                        carreraTitulo = "Sin carrera especificada";
+                    }
+                    imagePath = peticion.getImagen();
 
+                    // Replace backslashes with forward slashes
+                    if (imagePath != null) {
+                        imagePath = imagePath.replace("\\", "/");
+                        imagePath = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+                    }
+
+                    // Set the modified image path back to the peticion object if needed or pass it as an attribute
+                    peticion.setImagen(imagePath);
+                    // Set attributes for JSP
+                    request.setAttribute("peticion", peticion);
+                    request.setAttribute("usuario", nombre);
+                    request.setAttribute("carrera", carreraTitulo);
+                    url="/WEB-INF/peticiones/aprobar.jsp";
+                    break;
+                
+                
             }
             try {
                 request.getRequestDispatcher(url).forward(request, response);
@@ -456,6 +499,11 @@ public class peticiones extends HttpServlet {
                         } else if (isValidUrl(imagenUrl)) {
                             peticion.setImagen(imagenUrl);
                         }
+                        
+                        if(peticion.getRechazada()==1){
+                            peticion.setRechazada(Short.valueOf("0"));
+                            peticion.setComentario("");
+                        }
 
                         petF.edit(peticion);
 
@@ -482,6 +530,69 @@ public class peticiones extends HttpServlet {
                             request.setAttribute("error", "Ocurrió un error inesperado.");
                             request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
                         }
+                case "/peticiones/publicar":
+                    Integer peticionId = Integer.valueOf(request.getParameter("id"));
+                    Peticion peticion=petF.find(peticionId);
+                    if(peticion==null || peticion.getRechazada()==1 || peticion.getPublicada()==1 || peticion.getVencimiento().before(new Date())){
+                        request.getSession().setAttribute("error", "No se puede publicar la petición");
+                        response.sendRedirect("./pendientes");
+                        return;
+                    }
+                    peticion.setPublicada(Short.valueOf("1"));
+                    petF.edit(peticion);
+                    request.getSession().setAttribute("success", "Petición Publicada");
+                    response.sendRedirect("./pendientes");
+                    break;
+                case "/peticiones/eliminar":
+                    peticionId = Integer.valueOf(request.getParameter("id"));
+                    peticion=petF.find(peticionId);
+                    if(peticion==null){
+                        request.getSession().setAttribute("error", "No existe la peticion");
+                        response.sendRedirect("./pendientes");
+                        return;
+                    }
+                    petF.remove(peticion);
+                    request.getSession().setAttribute("success", "Petición eliminada");
+                    response.sendRedirect("./pendientes");
+                    break;
+                case "/peticiones/rechazar":
+                    peticionId = Integer.valueOf(request.getParameter("id"));
+                    String comentario = request.getParameter("comentario");
+
+                    // Validación del comentario
+                    if (comentario == null || comentario.length() < 3 || comentario.length() > 100) {
+                        request.getSession().setAttribute("error", "El comentario es obligatorio y debe tener entre 3 y 100 caracteres.");
+                        response.sendRedirect("./pendientes");
+                        return;
+                    }
+
+                    try {
+                        // Buscar la petición por ID
+                        peticion = petF.find(peticionId);
+
+                        if (peticion == null) {
+                            request.getSession().setAttribute("error", "Petición no encontrada.");
+                            response.sendRedirect("./pendientes");
+                            return;
+                        }
+
+                        // Verificar si la petición ya está publicada
+                        if (peticion.getPublicada()==1) {
+                            request.getSession().setAttribute("error", "¡La petición no puede ser rechazada!");
+                            response.sendRedirect("./pendientes");
+                            return;
+                        }
+
+                        // Marcar como rechazada y guardar el comentario
+                        peticion.setRechazada(Short.valueOf("1"));
+                        peticion.setComentario(comentario);
+                        petF.edit(peticion);
+                        request.getSession().setAttribute("success", "Petición rechazada.");
+                        response.sendRedirect("./pendientes");
+                    } catch (IOException | NumberFormatException e) {
+                        request.getSession().setAttribute("error", "Ocurrió un error al procesar la petición.");
+                        response.sendRedirect("./pendientes");
+                    }
 
 
             }

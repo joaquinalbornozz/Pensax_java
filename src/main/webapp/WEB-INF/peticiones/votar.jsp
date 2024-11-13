@@ -20,8 +20,8 @@
 <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
-            <a class="navbar-brand" href="${pageContext.request.contextPath}/home.jsp">
-                <img src="${pageContext.request.contextPath}/assets/logo.png" alt="Logo" class="h-14 w-auto">
+            <a class="navbar-brand" href="${pageContext.request.contextPath}/peticiones">
+                <img src="http://localhost:8080/Pensax/images?imageName=/logo.png" alt="Logo" style="height: 50px;width: auto;">
             </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -29,15 +29,15 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="./peticiones">Peticiones</a>
+                        <a class="nav-link" href="${pageContext.request.contextPath}/peticiones">Peticiones</a>
                     </li>
                     <%-- Conditionally show admin links --%>
                     <c:if test="${sessionScope.user.getRol().equals(\"admin\")}">
                         <li class="nav-item">
-                            <a class="nav-link" href="./carreras">Carreras</a>
+                            <a class="nav-link" href="${pageContext.request.contextPath}/carreras">Carreras</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="./usuarios">Usuarios</a>
+                            <a class="nav-link" href="${pageContext.request.contextPath}/usuarios">Usuarios</a>
                         </li>
                     </c:if>
                 </ul>
@@ -55,6 +55,55 @@
             </div>
         </div>
     </nav>
+    <%-- Verificar si el usuario es administrador --%>
+    <c:if test="${sessionScope.user.getRol().equals(\"admin\")}">
+        <nav class="bg-light p-2">
+            <div class="container">
+                <ul class="nav navbar-light bg-light">
+                    <li class="nav-item">
+                        <a href="${pageContext.request.contextPath}/peticiones" class="nav-link ${pageContext.request.requestURI.endsWith('/peticiones') ? 'text-warning' : 'text-muted'}">
+                            Publicadas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="${pageContext.request.contextPath}/peticiones/pendientes" class="nav-link ${pageContext.request.requestURI.endsWith('/peticiones/pendientes') ? 'text-warning' : 'text-muted'}">
+                            Pendientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="${pageContext.request.contextPath}/peticiones/vencidas" class="nav-link ${pageContext.request.requestURI.endsWith('/peticiones/vencidas') ? 'text-warning' : 'text-muted'}">
+                            Vencidas
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </c:if>
+
+    <%-- Verificar si el usuario es redactor --%>
+    <c:if test="${sessionScope.user.getRol().equals(\"redactor\")}">
+        <nav class="bg-light p-2">
+            <div class="container">
+                <ul class="navnavbar-light bg-light">
+                    <li class="nav-item">
+                        <a href="${pageContext.request.contextPath}/peticiones" class="nav-link ${pageContext.request.requestURI.endsWith('/peticiones') ? 'text-warning' : 'text-muted'}">
+                            Publicadas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="${pageContext.request.contextPath}/peticiones/create" class="nav-link ${pageContext.request.requestURI.endsWith('/peticiones/create') ? 'text-warning' : 'text-muted'}">
+                            Crear Petición
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="${pageContext.request.contextPath}/peticiones/mis" class="nav-link ${pageContext.request.requestURI.endsWith('/peticiones/mis') ? 'text-warning' : 'text-muted'}">
+                            Mis Peticiones
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </c:if>
 <div class="container my-5">
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
