@@ -56,4 +56,14 @@ public class UserFacade extends AbstractFacade<User> {
         return resultList.isEmpty() ? null : resultList.get(0);
     }
     
+    public List<User> getUsuarios(){
+        EntityManager emm = getEntityManager();
+        CriteriaBuilder cb = emm.getCriteriaBuilder();
+        CriteriaQuery cq=cb.createQuery();
+        Root<User> c=cq.from(User.class);
+        cq.select(c);
+        cq.where(cb.or(cb.isNull(c.get("rol")),cb.equal(c.get("rol"),"")) );
+        return emm.createQuery(cq).getResultList();
+    }
+    
 }

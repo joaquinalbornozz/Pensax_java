@@ -9,6 +9,7 @@ com\mycompany\pensax\resources\JakartaEE10Resource.class
 com\mycompany\pensax\modelos\VotoPK.class
 com\mycompany\pensax\JakartaRestConfiguration.class
 com\mycompany\pensax\modelos\Session.class
+com\mycompany\pensax\controladores\usuarios.class
 com\mycompany\pensax\modelos\Voto.class
 com\mycompany\pensax\sessions\CarreraFacade.class
 com\mycompany\pensax\sessions\VotoFacade.class
