@@ -1,3 +1,4 @@
+com\mycompany\pensax\controladores\ImageServlet.class
 com\mycompany\pensax\sessions\AbstractFacade.class
 com\mycompany\pensax\controladores\auth.class
 com\mycompany\pensax\modelos\User.class

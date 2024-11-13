@@ -53,7 +53,8 @@ import java.util.regex.Pattern;
             "/peticiones/editar",
             "/peticiones/votar",
             "/peticiones/create",
-            "/peticiones/mis"
+            "/peticiones/mis",
+            "/peticiones/show"
         }
         )
 @MultipartConfig
@@ -84,6 +85,16 @@ public class peticiones extends HttpServlet {
                     List<Peticion> peticiones = petF.getPeticionesPulicadas(carreraId);
 
                     List<Carrera> carreras = carreraF.findAll();
+                    for(Peticion p : peticiones){
+                        String imagePath = p.getImagen();
+
+                        // Replace backslashes with forward slashes
+                        if (imagePath != null) {
+                            imagePath = imagePath.replace("\\", "/");
+                            imagePath = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+                        }
+                        p.setImagen(imagePath);
+                    }
 
                     request.setAttribute("peticiones", peticiones);
                     request.setAttribute("carreras", carreras);
@@ -106,6 +117,16 @@ public class peticiones extends HttpServlet {
                         System.out.println(uservote);
                         boolean uv;
                         uv = uservote != null;
+                        String imagePath = p.getImagen();
+
+                        // Replace backslashes with forward slashes
+                        if (imagePath != null) {
+                            imagePath = imagePath.replace("\\", "/");
+                            imagePath = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+                        }
+
+                        // Set the modified image path back to the peticion object if needed or pass it as an attribute
+                        p.setImagen(imagePath);
                         request.setAttribute("peticion", p);
                         request.setAttribute("usuario", user);
                         request.setAttribute("carrera", c);
@@ -153,7 +174,55 @@ public class peticiones extends HttpServlet {
                         url="/WEB-INF/peticiones/editar.jsp";
                     }
                     break;
+                case "/peticiones/show":
+                    peticionId = Integer.valueOf(request.getParameter("id"));
+                    user = (User) request.getSession().getAttribute("user");
+
+                    if (user == null ||user.getRol()==null ||(!user.getRol().equals("admin")&& !user.getRol().equals("redactor"))) {
+                        request.getSession().setAttribute("error", "Vista no autorizada");
+                        response.sendRedirect("/Pensax/peticiones");
+                        return;
+                    }
+
+                    Peticion peticion = petF.find(peticionId); 
+                    if (peticion == null) {
+                        request.getSession().setAttribute("error", "Petición no encontrada");
+                        response.sendRedirect("/Pensax/peticiones");
+                        return;
+                    }
+
+                    if (!user.getRol().equals("admin") && !peticion.getUserIdusers().equals(user)) {
+                        request.getSession().setAttribute("error", "Vista no autorizada");
+                        response.sendRedirect("/Pensax/peticiones");
+                        return;
+                    }
+
+                    String usuario = peticion.getUserIdusers().getApellido()+ peticion.getUserIdusers().getNombre();
+
+                    String carrera;
+                    if (peticion.getCarreraidCarrera() != null) {
+                        Carrera carreraEntity = carreraF.find(peticion.getCarreraidCarrera().getIdCarrera());
+                        carrera = carreraEntity != null ? carreraEntity.getTitulo() : "Sin carrera especificada";
+                    } else {
+                        carrera = "Sin carrera especificada";
+                    }
                     
+                    String imagePath = peticion.getImagen();
+
+                    // Replace backslashes with forward slashes
+                    if (imagePath != null) {
+                        imagePath = imagePath.replace("\\", "/");
+                        imagePath = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+                    }
+
+                    // Set the modified image path back to the peticion object if needed or pass it as an attribute
+                    peticion.setImagen(imagePath);
+
+                    request.setAttribute("peticion", peticion);
+                    request.setAttribute("usuario", usuario);
+                    request.setAttribute("carrera", carrera);
+                    url="/WEB-INF/peticiones/show.jsp";
+                    break;
 
             }
             try {

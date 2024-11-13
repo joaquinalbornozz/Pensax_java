@@ -116,7 +116,7 @@
         </div>
         <c:if test="${!peticion.getImagen().trim().isEmpty()}">
             <div class="card-footer bg-white">
-                <img src="${peticion.getImagen()}" 
+                <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" 
                      alt="${peticion.getTitulo()}" 
                      class="rounded img-fluid w-100" style="max-height: 300px; object-fit: cover;">
             </div>

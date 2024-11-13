@@ -1,27 +1,20 @@
 <%-- 
-    Document   : index
-    Created on : 5 nov 2024, 23:06:42
+    Document   : show
+    Created on : 12 nov 2024, 23:48:06
     Author     : users
 --%>
 
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peticiones</title>
+    <title>Petición</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        .bg-dark-mode { background-color: #1e1e2f; color: #ddd; }
-        .text-dark-mode { color: #ddd; }
-    </style>
 </head>
-<body class="d-flex flex-column min-vh-100 bg-light bg-dark-mode">
+<body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
@@ -102,7 +95,7 @@
                     </li>
                     <li class="nav-item">
                         <a href="${pageContext.request.contextPath}/peticiones/create" class="nav-link ${pageContext.request.requestURI.endsWith('/peticiones/create') ? 'text-warning' : 'text-muted'}">
-                            Crear PeticiÃ³n
+                            Crear Petición
                         </a>
                     </li>
                     <li class="nav-item">
@@ -115,108 +108,74 @@
         </nav>
     </c:if>
 
-
-    <!-- Main Content -->
-    <main class="flex-grow-1 container my-4 p-4 bg-white rounded shadow-sm">
-        <div class="container">
-            <h2 class="font-weight-bold text-primary mb-3">Peticiones</h2>
-
-            <!-- Mensajes de Ã©xito y error -->
-            <c:if test="${not empty success}">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <c:out value="${success}" />
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            </c:if>
-
-            <c:if test="${not empty error}">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <c:out value="${error}" />
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            </c:if>
-            
-            <c:if test="${sessionScope.error!=null && not empty sessionScope.error}">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <c:out value="${error}" />
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="close"></button>
-                </div>
-            </c:if>
-
-            <!-- Filtro de carrera -->
-            <div class="mb-4">
-                <form method="GET" action="${pageContext.request.contextPath}/peticiones" class="d-flex justify-content-center">
-                    <select name="carrera_id" class="form-select w-auto" onchange="this.form.submit()">
-                        <option value="">Todas</option>
-                        <c:forEach var="carrera" items="${carreras}">
-                            <option value="${carrera.idCarrera}" ${carrera.idCarrera == param.carrera_id ? 'selected' : ''}>
-                                <c:out value="${carrera.titulo}" />
-                            </option>
-                        </c:forEach>
-                            <option value="0" ${0==param.carrera_id ? 'selected' : ''}>Sin carrera especÃ­fica</option>
-                    </select>
-                </form>
-            </div>
-
-            <!-- Listado de peticiones -->
-            <div class="row">
+    <div class="container mt-5">
+        <div class="d-flex align-items-center mb-4">
+            <h2 class="font-weight-bold text-gray-800">
                 <c:choose>
-                    <c:when test="${not empty peticiones}">
-                        <c:forEach var="peticion" items="${peticiones}">
-                            <div class="col-md-6 mb-3">
-                                <div class="card shadow-sm">
-                                    <div class="card-body">
-                                        <h5 class="card-title text-primary">
-                                            <c:out value="${peticion.getTitulo()}" />
-                                        </h5>
-                                        <p class="card-text">
-                                            <c:out value="${fn:substring(peticion.getDescripcion(), 0, 50)}" />...
-                                        </p>
-                                        <p class="text-muted">Vencimiento: <fmt:formatDate value="${peticion.getVencimiento()}" pattern="dd/MM/yyyy" /></p>
-                                        <a href="${pageContext.request.contextPath}/peticiones/votar?id=${peticion.getIdpeticion()}" class="stretched-link"></a>
-                                    </div>
-                                    <c:if test="${not empty peticion.getImagen()}">
-                                        <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" class="card-img-bottom" alt="${peticion.getTitulo()}" style="max-height: 150px; object-fit: cover;">
-                                    </c:if>
-                                </div>
-                            </div>
-                        </c:forEach>
+                    <c:when test="${peticion.getPublicada()!=1}">
+                        Petición
                     </c:when>
                     <c:otherwise>
-                        <div class="col-12">
-                            <div class="alert alert-secondary text-center" role="alert">
-                                No hay peticiones
-                            </div>
-                        </div>
+                        Petición Vencida
                     </c:otherwise>
                 </c:choose>
+            </h2>
+        </div>
+        
+        <div class="card shadow-sm p-4">
+            <div class="card-body">
+                <h2 class="text-3xl font-weight-bold text-dark mb-4">${peticion.getTitulo()}</h2>
+                <p class="text-lg text-muted mb-4">${peticion.getDescripcion()}</p>
+                <p class="text-sm text-muted mb-3">Vencimiento: <fmt:formatDate value="${peticion.getVencimiento()}" pattern="dd/MM/yyyy" /></p>
+
+                <c:if test="${not empty peticion.getImagen()}">
+                    <div class="text-center mb-4">
+                        <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" alt="${peticion.getTitulo()}" class="rounded w-70 h-70 object-cover img-fluid">
+                    </div>
+                </c:if>
+
+                <p class="text-muted mb-3">Positivos: <span class="font-weight-bold">${peticion.getPositivos()}</span></p>
+                <p class="text-muted mb-3">Negativos: <span class="font-weight-bold">${peticion.getNegativos()}</span></p>
+                <p class="text-muted mb-3">Carrera: ${carrera}</p>
+                <p class="text-muted mb-3">Usuario: ${usuario}</p>
+                <p class="text-muted mb-3">Rechazada: <c:choose>
+                    <c:when test="${peticion.getRechazada()==1}">Sí</c:when>
+                    <c:otherwise>No</c:otherwise>
+                </c:choose></p>
+                <p class="text-muted mb-3">Comentario: ${peticion.getComentario()}</p>
+
+                <c:if test="${not empty peticion.getVotoCollection()}">
+                    <div class="mt-4">
+                        <h3 class="text-2xl font-weight-semibold text-dark mb-3">Detalles de los votos</h3>
+                        <ul class="list-group">
+                            <c:forEach var="votante" items="${peticion.getVotoCollection()}">
+                                <li class="list-group-item d-flex align-items-center">
+                                    <div class="ml-3">
+                                        <p class="font-weight-medium">
+                                            <c:choose>
+                                                <c:when test="${votante.getAnonimo()}">Anónimo</c:when>
+                                                <c:otherwise>${votante.getUser().getApellido() + votante.getUser().getNombre()}</c:otherwise>
+                                            </c:choose>
+                                        </p>
+                                        <p class="text-muted">
+                                            votó <c:choose>
+                                                <c:when test="${votante.getVoto()==1}">positivo</c:when>
+                                                <c:otherwise>negativo</c:otherwise>
+                                            </c:choose>
+                                        </p>
+                                    </div>
+                                </li>
+                            </c:forEach>
+                        </ul>
+                    </div>
+                </c:if>
             </div>
-
-            
         </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-auto">
-        <div class="container text-center">
-            <jsp:useBean id="now" class="java.util.Date" scope="request" />
-            <p>&copy; <fmt:formatDate value="${now}" pattern="yyyy" /> Pensax. All rights reserved.</p>
-        </div>
-    </footer>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const closeButtons = document.querySelectorAll('.btn-close');
-    closeButtons.forEach(function (button) {
-        button.addEventListener('click', function () {
-            const alertBox = button.closest('.alert');
-            alertBox.style.display = 'none';
-        });
-    });
-});
-
-</script>
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    </div>
+    
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </body>
 </html>

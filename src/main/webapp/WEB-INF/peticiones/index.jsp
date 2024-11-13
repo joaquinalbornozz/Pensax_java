@@ -135,6 +135,13 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             </c:if>
+            
+            <c:if test="${sessionScope.error!=null && not empty sessionScope.error}">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <c:out value="${error}" />
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="close"></button>
+                </div>
+            </c:if>
 
             <!-- Filtro de carrera -->
             <div class="mb-4">
@@ -169,7 +176,7 @@
                                         <a href="${pageContext.request.contextPath}/peticiones/votar?id=${peticion.getIdpeticion()}" class="stretched-link"></a>
                                     </div>
                                     <c:if test="${not empty peticion.getImagen()}">
-                                        <img src="${peticion.getImagen()}" class="card-img-bottom" alt="${peticion.getTitulo()}" style="max-height: 150px; object-fit: cover;">
+                                        <img src="http://localhost:8080/Pensax/images?imageName=${peticion.getImagen()}" class="card-img-bottom" alt="${peticion.getTitulo()}" style="max-height: 150px; object-fit: cover;">
                                     </c:if>
                                 </div>
                             </div>
@@ -196,6 +203,18 @@
             <p>&copy; <fmt:formatDate value="${now}" pattern="yyyy" /> Pensax. All rights reserved.</p>
         </div>
     </footer>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const closeButtons = document.querySelectorAll('.btn-close');
+    closeButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            const alertBox = button.closest('.alert');
+            alertBox.style.display = 'none';
+        });
+    });
+});
+
+</script>
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
