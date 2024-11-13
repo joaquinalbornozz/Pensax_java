@@ -1,4 +1,5 @@
 C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\JakartaRestConfiguration.java
+C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\controladores\usuarios.java
 C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\sessions\PeticionFacade.java
 C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\modelos\Peticion.java
 C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\sessions\VotoFacade.java
@@ -10,7 +11,9 @@ C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\P
 C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\controladores\peticiones.java
 C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\modelos\Voto.java
 C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\sessions\AbstractFacade.java
+C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\controladores\carreras.java
 C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\modelos\VotoPK.java
+C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\controladores\ImageServlet.java
 C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\sessions\UserFacade.java
 C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\sessions\SessionFacade.java
 C:\Users\users\Documents\Cristiannika\TERCER AnO FACULTAD\PROGRAMACION WEB III\Pensax\src\main\java\com\mycompany\pensax\resources\JakartaEE10Resource.java
