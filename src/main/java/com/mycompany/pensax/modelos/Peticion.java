@@ -26,6 +26,8 @@ import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Date;
 
@@ -265,4 +267,12 @@ public class Peticion implements Serializable {
         return "com.mycompany.pensax.modelos.Peticion[ idpeticion=" + idpeticion + " ]";
     }
     
+    public boolean isImageUrl() {
+        try {
+            URL url = new URL(imagen);
+            return true;
+        } catch (MalformedURLException e) {
+            return false;
+        }
+    }
 }

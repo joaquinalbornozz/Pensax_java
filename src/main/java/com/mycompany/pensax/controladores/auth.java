@@ -89,7 +89,7 @@ public class auth extends HttpServlet {
                         session.invalidate();
                         sesF.remove(sesF.find(sessionId));
                     }
-
+                    
                     response.sendRedirect("/Pensax");
                     return;
             }

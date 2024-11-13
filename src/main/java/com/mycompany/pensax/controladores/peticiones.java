@@ -37,7 +37,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -136,7 +135,26 @@ public class peticiones extends HttpServlet {
                     url="/WEB-INF/peticiones/mispeticiones.jsp";
                     break;
                 case "/peticiones/editar":
+                    peticionId= Integer.valueOf(request.getParameter("id")) ;
+                    p= petF.find(peticionId);
+                    user = (User) request.getSession().getAttribute("user");
                     
+                    System.out.println(p);
+                    System.out.println(user);
+                    System.out.println(new Date().toString());
+                    
+                    if(p==null || p.getPublicada()==1 || p.getVencimiento().before(new Date()) || !p.getUserIdusers().equals(user)){
+                        request.setAttribute("successMessage", "No puede editar esta peticion");
+                        url="/WEB-INF/peticiones/mispeticiones.jsp";
+                    }else{
+                        carreras= carreraF.findAll();
+                        request.setAttribute("carreras",carreras);
+                        request.setAttribute("peticion", p);
+                        url="/WEB-INF/peticiones/editar.jsp";
+                    }
+                    break;
+                    
+
             }
             try {
                 request.getRequestDispatcher(url).forward(request, response);
@@ -190,7 +208,7 @@ public class peticiones extends HttpServlet {
                                                  .orElse(null);
 
                         if (userVote != null) {
-                            response.sendRedirect("./peticiones?error=Ya has votado esta petición.");
+                            response.sendRedirect("/Pensax/peticiones?error=Ya has votado esta petición.");
                             return;
                         }
 
@@ -240,7 +258,7 @@ public class peticiones extends HttpServlet {
                         //System.out.println(titulo);
                         if (!isValidTitulo(titulo) || !isValidDescripcion(descripcion) || !isValidVencimiento(vencimientoStr)) {
                             request.setAttribute("error", "Los datos no son válidos.");
-                            request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
+                            request.getRequestDispatcher("/WEB-INF/peticiones/create.jsp").forward(request, response);
                             return;
                         }
 
@@ -252,7 +270,6 @@ public class peticiones extends HttpServlet {
                             return;
                         }
 
-                        // Crear y configurar la instancia de Peticion
                         Peticion peticion = new Peticion();
                         peticion.setTitulo(titulo);
                         peticion.setDescripcion(descripcion);
@@ -268,7 +285,6 @@ public class peticiones extends HttpServlet {
                         peticion.setDeleted(Short.valueOf("0"));
                         peticion.setUpdatedAt(new Date());
 
-                        // Manejo de la imagen (archivo o URL)
                         Part imagen = null;
                         if (request.getContentType() != null && request.getContentType().startsWith("multipart/")) {
                             imagen = request.getPart("imagen");
@@ -282,14 +298,12 @@ public class peticiones extends HttpServlet {
                             peticion.setImagen("");
                         }
 
-                        // Guardar la petición en la base de datos
                         utx.begin();
                         em = emf.createEntityManager();
                         em.persist(peticion);
                         utx.commit();
 
-                        // Redirección después de guardar
-                        request.setAttribute("success", "Petición creada correctamente!");
+                        request.setAttribute("successMessage", "Petición creada correctamente!");
                         response.sendRedirect("./mis");
 
                     } catch (IOException e) {
@@ -313,6 +327,92 @@ public class peticiones extends HttpServlet {
                         request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
                     }
                     break;
+                case "/peticiones/editar":
+                    try {
+                        System.out.println("Editando petición");
+
+                        String peticionId = request.getParameter("id");
+                        if (peticionId == null || peticionId.trim().isEmpty()) {
+                            request.setAttribute("error", "ID de la petición no proporcionado.");
+                            request.getRequestDispatcher("/WEB-INF/peticiones/mispeticiones.jsp").forward(request, response);
+                            return;
+                        }
+
+                        Peticion peticion = petF.find(Integer.valueOf(peticionId));
+                        if (peticion == null) {
+                            request.setAttribute("successMessage", "La petición no existe.");
+                            request.getRequestDispatcher("/WEB-INF/peticiones/mispeticiones.jsp").forward(request, response);
+                            return;
+                        }
+
+                        String titulo = request.getParameter("titulo");
+                        String descripcion = request.getParameter("descripcion");
+                        String vencimientoStr = request.getParameter("vencimiento");
+                        String carreraId = request.getParameter("carrera_id");
+                        String imagenUrl = request.getParameter("imagen_url");
+
+                        if (!isValidTitulo(titulo) || !isValidDescripcion(descripcion) || !isValidVencimiento(vencimientoStr)) {
+                            request.setAttribute("error", "Los datos no son válidos.");
+                            request.getRequestDispatcher("/WEB-INF/peticiones/edit.jsp").forward(request, response);
+                            return;
+                        }
+
+                        Date vencimiento = java.sql.Date.valueOf(vencimientoStr);
+
+                        peticion.setTitulo(titulo);
+                        peticion.setDescripcion(descripcion);
+                        peticion.setVencimiento(vencimiento);
+                        if(null != carreraId && !carreraId.trim().isEmpty()) peticion.setCarreraidCarrera(carreraF.find(Integer.valueOf(carreraId)) );
+                        peticion.setUpdatedAt(new Date());
+                        
+                        String oldPath = peticion.getImagen();
+
+                        if (oldPath != null && !oldPath.isEmpty()) {
+                            File oldFile = new File(oldPath);
+                            if (oldFile.exists()) {
+                                if (oldFile.delete()) {
+                                    System.out.println("Old image deleted successfully.");
+                                } else {
+                                    System.err.println("Failed to delete the old image.");
+                                }
+                            }
+                        }
+                        Part imagen = null;
+                        if (request.getContentType() != null && request.getContentType().startsWith("multipart/")) {
+                            imagen = request.getPart("imagen");
+                        }
+                        if (imagen != null && imagen.getSize() > 0 && isImageFile(imagen)) {
+                            String filePath = saveImageFile(imagen);
+                            peticion.setImagen(filePath);
+                        } else if (isValidUrl(imagenUrl)) {
+                            peticion.setImagen(imagenUrl);
+                        }
+
+                        petF.edit(peticion);
+
+                        request.setAttribute("success", "Petición actualizada correctamente!");
+                        response.sendRedirect("./mis");
+
+                        } catch (IOException e) {
+                            System.err.println("Error de IO: " + e.getMessage());
+                            request.setAttribute("error", "Ocurrió un error al procesar la solicitud.");
+                            request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
+
+                        } catch (ServletException e) {
+                            System.err.println("Error en el servlet: " + e.getMessage());
+                            request.setAttribute("error", "Ocurrió un error al procesar la solicitud.");
+                            request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
+
+                        } catch (NumberFormatException e) {
+                            System.err.println("Error en el formato de número: " + e.getMessage());
+                            request.setAttribute("error", "Número inválido en la solicitud.");
+                            request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
+
+                        } catch (IllegalStateException | SecurityException e) {
+                            System.err.println("Error general: " + e.getMessage());
+                            request.setAttribute("error", "Ocurrió un error inesperado.");
+                            request.getRequestDispatcher("/WEB-INF/peticiones/index.jsp").forward(request, response);
+                        }
 
 
             }

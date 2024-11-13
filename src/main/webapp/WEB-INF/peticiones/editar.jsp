@@ -1,18 +1,17 @@
 <%-- 
-    Document   : mispeticiones
-    Created on : 11 nov 2024, 21:19:38
+    Document   : editar
+    Created on : 12 nov 2024, 22:24:58
     Author     : users
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@page contentType="text/html" pageEncoding="UTF-8"language="java"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Peticiones</title>
+    <title>Editar Petición</title>
+    <!-- Agrega el enlace a Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
@@ -109,82 +108,99 @@
         </nav>
     </c:if>
 
-    <div class="container my-5 p-4 bg-white rounded shadow">
-        <!-- Header -->
-        <h2 class="text-center text-dark mb-4">Mis Peticiones</h2>
-        
-        <!-- Mensaje de éxito -->
-        <c:if test="${not empty successMessage}">
-            <div class="alert alert-success font-weight-bold">
-                ${successMessage}
-            </div>
-        </c:if>
+<div class="container my-5 p-4 bg-white rounded-lg shadow-lg">
+    <h2 class="font-weight-bold text-xl mb-4">Editar Petición</h2>
 
-        <!-- Filtro de Peticiones -->
+    <%-- Mostrar errores --%>
+    <c:if test="${error.trim.notEmpty()}">
+        <div class="alert alert-danger">
+            <p>${error}</p>
+        </div>
+    </c:if>
+
+    <%-- Mostrar comentario de rechazo si existe --%>
+    <c:if test="${peticion.getRechazada()==1}">
         <div class="mb-4">
-            <form method="GET" action="mis" class="d-flex justify-content-center">
-                <select name="filter" class="form-select w-25" onchange="this.form.submit()">
-                    <option value="">Todas</option>
-                    <option value="publicadas" ${param.filter == 'publicadas' ? 'selected' : ''}>Publicadas</option>
-                    <option value="rechazadas" ${param.filter == 'rechazadas' ? 'selected' : ''}>Rechazadas</option>
-                    <option value="eliminadas" ${param.filter == 'eliminadas' ? 'selected' : ''}>Eliminadas</option>
-                    <option value="pendientes" ${param.filter == 'pendientes' ? 'selected' : ''}>Pendientes</option>
-                    <option value="vencidas" ${param.filter == 'vencidas' ? 'selected' : ''}>Vencidas</option>
-                </select>
-            </form>
+            <label class="font-weight-bold text-danger">Comentario de Rechazo:</label>
+            <p class="text-danger">${peticion.getComentario()}</p>
         </div>
-                        <jsp:useBean id="now" class="java.util.Date" scope="request" />
+    </c:if>
 
-        <!-- Lista de Peticiones -->
-        <div class="list-group">
-            <c:forEach var="peticion" items="${peticiones}">
-                <div class="list-group-item bg-light mb-3 rounded shadow-sm">
-                    <h5 class="mb-1 text-dark">${peticion.titulo}</h5>
-                    <p class="text-muted">${peticion.descripcion}</p>
-                    <p class="text-secondary">Vencimiento: <fmt:formatDate value="${peticion.vencimiento}" pattern="dd/MM/yyyy" /></p>
-
-                    <c:choose>
-                        <c:when test="${peticion.getDeleted()==1}">
-                            <p class="text-danger">Eliminada</p>
-                            <a href="./ver-peticion?id=${peticion.getIdpeticion()}" class="text-primary text-decoration-underline">Ver</a>
-                        </c:when>
-                        <c:when test="${peticion.getVencimiento().before(now)}">
-                            <p class="text-warning">Vencida</p>
-                            <a href="./ver-peticion?id=${peticion.getIdpeticion()}" class="text-primary text-decoration-underline">Ver</a>
-                        </c:when>
-                        <c:when test="${peticion.getPublicada()==1}">
-                            <p class="text-success">Publicada</p>
-                            <a href="./ver-peticion?id=${peticion.getIdpeticion()}" class="text-primary text-decoration-underline">Ver</a>
-                        </c:when>
-                        <c:when test="${peticion.getRechazada()==1}">
-                            <p class="text-danger">Rechazada</p>
-                            <a href="./editar?id=${peticion.getIdpeticion()}" class="text-primary text-decoration-underline">Editar</a>
-                        </c:when>
-                        <c:otherwise>
-                            <p class="text-info">Pendiente</p>
-                            <a href="./editar?id=${peticion.getIdpeticion()}" class="text-primary text-decoration-underline">Editar</a>
-                        </c:otherwise>
-                    </c:choose>
-                </div>
-            </c:forEach>
-            
-            <!-- Mensaje si no hay peticiones -->
-            <c:if test="${peticiones == null || peticiones.isEmpty()}">
-                <p class="text-center text-dark">No hay peticiones disponibles</p>
-            </c:if>
+    <form method="POST" action="./editar?id=${peticion.getIdpeticion()}" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="titulo">Título</label>
+            <input type="text" name="titulo" id="titulo" class="form-control" value="${peticion.getTitulo()}" required>
         </div>
 
-        <!-- Footer -->
-    
-    </div>
-    <footer class="bg-dark text-white py-4 mt-auto">
-        <div class="container text-center">
-            <jsp:useBean id="now1" class="java.util.Date" scope="request" />
-            <p>&copy; <fmt:formatDate value="${now1}" pattern="yyyy" /> Pensax. All rights reserved.</p>
+        <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <textarea name="descripcion" id="descripcion" class="form-control" rows="4" required>${peticion.getDescripcion()}</textarea>
         </div>
-    </footer>
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+
+        <div class="form-group">
+            <label>Imagen</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="image_choice" id="file_choice" value="file" ${!peticion.isImageUrl() ? "checked" : ""}>
+                <label class="form-check-label" for="file_choice">Subir archivo</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="image_choice" id="url_choice" value="url" ${peticion.isImageUrl() ? "checked" : ""}>
+                <label class="form-check-label" for="url_choice">Enlace URL</label>
+            </div>
+        </div>
+
+        <div class="form-group" id="file_input" style="${peticion.isImageUrl() ? 'display:none;' : ''}">
+            <label for="imagen">Archivo de imagen</label>
+            <input type="file" name="imagen" id="imagen" class="form-control-file">
+        </div>
+
+        <div class="form-group" id="url_input" style="${!peticion.isImageUrl() ? 'display:none;' : ''}">
+            <label for="imagen_url">Enlace URL de la imagen</label>
+            <input type="text" name="imagen_url" id="imagen_url" class="form-control" value="${peticion.imagen}">
+        </div>
+
+        <div class="form-group">
+            <label for="vencimiento">Fecha de Vencimiento</label>
+            <input type="date" name="vencimiento" id="vencimiento" class="form-control" value="${peticion.getVencimiento().toString()}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="carrera_id">Carrera (Opcional)</label>
+            <select name="carrera_id" id="carrera_id" class="form-control">
+                <option value="">Selecciona una carrera</option>
+                <c:forEach var="carrera" items="${carreras}">
+                    <option value="${carrera.getIdCarrera()}" ${peticion.getCarreraidCarrera().getIdCarrera() == carrera.getIdCarrera() ? "selected" : ""}>${carrera.getTitulo()}</option>
+                </c:forEach>
+            </select>
+        </div>
+
+        <div class="text-right">
+            <button type="submit" class="btn btn-primary">Actualizar Petición</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const fileChoice = document.getElementById('file_choice');
+        const urlChoice = document.getElementById('url_choice');
+        const fileInput = document.getElementById('file_input');
+        const urlInput = document.getElementById('url_input');
+
+        fileChoice.addEventListener('change', function () {
+            fileInput.style.display = 'block';
+            urlInput.style.display = 'none';
+        });
+
+        urlChoice.addEventListener('change', function () {
+            fileInput.style.display = 'none';
+            urlInput.style.display = 'block';
+        });
+    });
+</script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
+
+    </body>
 </html>
